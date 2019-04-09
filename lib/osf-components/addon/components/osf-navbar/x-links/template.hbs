@@ -34,6 +34,7 @@
     search=(component 'hyper-link'
         this.searchURL
         analyticsLabel='Navbar - navbar.search'
+        hidden=(not this.useNavSearch)
         tagName='li'
         text=(t 'navbar.search')
         onClicked=this.onLinkClicked

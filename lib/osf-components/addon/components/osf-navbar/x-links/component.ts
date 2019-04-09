@@ -14,6 +14,7 @@ const {
     navbar: {
         useQuickfiles,
         useRegistrations,
+        useSearch,
         useSupport,
         useDonate,
     },
@@ -34,6 +35,7 @@ export default class XLinks extends Component {
 
     useNavQuickfiles: boolean = useQuickfiles;
     useNavRegistrations: boolean = useRegistrations;
+    useNavSearch: boolean = useSearch;
     useNavSupport: boolean = useSupport;
     useNavDonate: boolean = useDonate;
 

@@ -162,6 +162,7 @@ declare const config: {
         useDropdown: boolean;
         useQuickfiles: boolean;
         useRegistrations: boolean;
+        useSearch: boolean;
         useSupport: boolean;
         useDonate: boolean;
         useSignup: boolean;

@@ -336,7 +336,7 @@ export default {
         donate: 'Donate',
         socialize: 'Socialize',
         contact: 'Contact',
-        copyright: 'Copyright &copy; 2011-{{currentYear}}',
+        copyright: 'Copyright &copy; 2017-{{currentYear}}',
         terms: 'Terms&nbsp;of&nbsp;Use',
         privacy: 'Privacy&nbsp;Policy',
         separator: ' | ',
