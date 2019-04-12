@@ -12,6 +12,9 @@ const {
         privacyPolicyLink,
         cookiesLink,
     },
+    navbar: {
+        useSearch,
+    },
 } = config;
 
 export default {
@@ -166,7 +169,7 @@ export default {
         create_new_project_button: 'Create new project',
         quicksearch: {
             search: 'Search your projects',
-            other_links: `Go to <a href="/myprojects/">My Projects</a> to organize your work or <a href="/search/">search</a> ${shortBrand}`,
+            other_links: `Go to <a href="/myprojects/">My Projects</a> to organize your ${useSearch ? 'work or <a href="/search/">search</a> ' : ''}${shortBrand}`,
             no_results: 'No results found.',
             no_projects: {
                 line1: 'You have no projects yet. Create a project with the button on the top right.',
