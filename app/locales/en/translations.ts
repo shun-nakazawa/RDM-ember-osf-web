@@ -1364,6 +1364,7 @@ export default {
         check_help: 'Perform image only scan service before submitting a paper',
         paper_title: 'Paper Title',
         contributors: 'Co-author/Worker',
+        edit_contributors: 'Edit',
         labo: 'Research Field',
         email: 'Email for Notification',
         accepted_date: 'Accepted Date',

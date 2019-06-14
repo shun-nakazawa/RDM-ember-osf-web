@@ -40,6 +40,13 @@
                                 {{item.fullName}}
                             </div>
                         {{/each}}
+                        <Link @href='./contributors'>
+                            <OsfButton
+                                @type='default'
+                                @size='xs'>
+                                <i class='fa fa-edit'> {{t 'iqbrims.edit_contributors'}}</i>
+                            </OsfButton>
+                        </Link>
                     </div>
                 </div>
                 <div class='form-group row'>
