@@ -1373,6 +1373,7 @@ export default {
         publish_date: 'Publish Date',
         volume: 'Volume',
         page_number: 'Page Number',
+        directly_submit_data: 'Directly Submit Data',
         workflow_overall_state: 'Workflow Overall State',
         submit_manuscripts: 'Final Manuscript/Composition',
         submit_data: 'Raw Data',

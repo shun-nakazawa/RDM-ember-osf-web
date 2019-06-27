@@ -312,6 +312,23 @@ export default class GuidNodeIQBRIMS extends Controller {
     }
 
     @computed('status.state')
+    get isDirectlySubmitData() {
+        if (!this.status || !this.status.get('isFulfilled')) {
+            return false;
+        }
+        const status = this.status.content as IQBRIMSStatusModel;
+        return status.isDirectlySubmitData;
+    }
+
+    set isDirectlySubmitData(v: boolean) {
+        if (!this.status) {
+            throw new EmberError('Illegal status');
+        }
+        const status = this.status.content as IQBRIMSStatusModel;
+        status.set('isDirectlySubmitData', v);
+    }
+
+    @computed('status.state')
     get workflowOverallState() {
         if (!this.status || !this.status.get('isFulfilled')) {
             return '';

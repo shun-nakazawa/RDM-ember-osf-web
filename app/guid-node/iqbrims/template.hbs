@@ -237,6 +237,15 @@
                     <div class='col-sm-10'>
                         {{this.workflowRawState}}
                     </div>
+                    <div class='col-sm-12 checkbox' local-class='IQBRIMS__checkbox'>
+                        {{input
+                            name='is_directly_submit_data'
+                            id='is_directly_submit_data'
+                            checked=this.isDirectlySubmitData
+                            type='checkbox'
+                        }}
+                        <label for='is_directly_submit_data'>{{t 'iqbrims.directly_submit_data'}}</label>
+                    </div>
                     <table class='table'>
                         <thead>
                             <tr>
