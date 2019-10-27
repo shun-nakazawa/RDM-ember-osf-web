@@ -31,6 +31,9 @@ export default class GuidNodeIQBRIMS extends Controller {
     @reads('model.taskInstance.value')
     node?: Node;
 
+    queryParams = ['tab'];
+    tab?: string;
+
     submitting = false;
     submitted = false;
 
@@ -697,6 +700,16 @@ export default class GuidNodeIQBRIMS extends Controller {
     @action
     buildChecklistFileUrl(files: File[]) {
         return this.checklistFiles.buildUrl(files);
+    }
+
+    @computed('tab')
+    get activeTab() {
+        return this.tab ? this.tab : 'IQBRIMS__overflow_view_paper';
+    }
+
+    @action
+    changeTab(this: GuidNodeIQBRIMS, activeId: string) {
+        this.set('tab', activeId === 'IQBRIMS__overflow_view_paper' ? undefined : activeId);
     }
 }
 

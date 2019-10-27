@@ -35,393 +35,419 @@
                         </div>
                     </div>
                 {{/if}}
-                <h2 local-class='IQBRIMS__header_1'>{{t 'iqbrims.header_overview' }}</h2>
-                <div class='form-group row'>
-                    <label class='col-sm-2' for='paper_title'>{{t 'iqbrims.paper_title'}}</label>
-                    <div data-test-paper-title class='col-sm-10'>
-                        {{this.paperTitle}}
-                    </div>
-                </div>
-                {{#if this.modeDeposit}}
-                    <div class='form-group row'>
-                        <label class='col-sm-2' for='contributors'>{{t 'iqbrims.contributors'}}</label>
-                        <div class='col-sm-10'>
-                            <div>
-                                {{this.owner.fullName}}
+                <BsTab
+                    @activeId={{this.activeTab}}
+                    @onChange={{action this.changeTab}}
+                    as |tab|
+                >
+                    <tab.pane
+                        @id='IQBRIMS__overflow_view_paper'
+                        @title={{t 'iqbrims.header_overview' }}
+                    >
+                        <h2 local-class='IQBRIMS__header'>{{t 'iqbrims.header_overview' }}</h2>
+                        <div class='form-group row'>
+                            <label class='col-sm-2' for='paper_title'>{{t 'iqbrims.paper_title'}}</label>
+                            <div data-test-paper-title class='col-sm-10'>
+                                {{this.paperTitle}}
                             </div>
-                            {{#each this.otherContributors as |item|}}
-                                <div>
-                                    {{item.fullName}}
+                        </div>
+                        {{#if this.modeDeposit}}
+                            <div class='form-group row'>
+                                <label class='col-sm-2' for='contributors'>{{t 'iqbrims.contributors'}}</label>
+                                <div class='col-sm-10'>
+                                    <div>
+                                        {{this.owner.fullName}}
+                                    </div>
+                                    {{#each this.otherContributors as |item|}}
+                                        <div>
+                                            {{item.fullName}}
+                                        </div>
+                                    {{/each}}
+                                    <OsfLink @href='./contributors'>
+                                        <OsfButton
+                                            @type='default'
+                                            @size='xs'>
+                                            <i class='fa fa-edit'> {{t 'iqbrims.edit_contributors'}}</i>
+                                        </OsfButton>
+                                    </OsfLink>
+                                </div>
+                            </div>
+                        {{/if}}
+                        <div class='form-group row'>
+                            <label class='col-sm-2' for='labo'>
+                                {{t 'iqbrims.labo'}} <span local-class='IQBRIMS__required'>*</span>
+                            </label>
+                            <div data-test-labo-name class='col-sm-10'>
+                                {{#if this.modeEdit}}
+                                    <select
+                                        data-test-labo-selection
+                                        class='form-control'
+                                        onchange={{action this.laboChanged value='target.value'}}
+                                    >
+                                        <option selected={{if (eq this.laboId '') 'selected'}} value=''>
+                                            {{t 'iqbrims.placeholders.labo'}}
+                                        </option>
+                                        {{#each this.laboList as |item|}}
+                                            <option selected={{if (eq this.laboId item.id) 'selected'}} value='{{item.id}}'>
+                                                {{item.text}}
+                                            </option>
+                                        {{/each}}
+                                    </select>
+                                {{else}}
+                                    {{this.laboName}}
+                                {{/if}}
+                            </div>
+                        </div>
+                        <div class='form-group row'>
+                            <label class='col-sm-2' for='email'>{{t 'iqbrims.email'}}</label>
+                            <div class='col-sm-10'>
+                                {{#each this.contributorEmails as |email|}}
+                                    <div>
+                                        {{email}}
+                                    </div>
+                                {{/each}}
+                            </div>
+                        </div>
+                        {{#if this.modeDeposit}}
+                            <div class='form-group row'>
+                                <label class='col-sm-2' for='accepted_date'>
+                                    {{t 'iqbrims.accepted_date'}} <span local-class='IQBRIMS__required'>*</span>
+                                </label>
+                                <div class='col-sm-10'>
+                                    {{#if this.modeEdit}}
+                                        {{validated-input/date
+                                            model=this
+                                            valuePath='acceptedDate'
+                                            shouldShowMessages=@didValidate
+                                            change=(action this.valueChanged)
+                                        }}
+                                    {{else}}
+                                        {{this.acceptedDate}}
+                                    {{/if}}
+                                </div>
+                            </div>
+                            <div class='form-group row'>
+                                <label class='col-sm-2' for='journal_name'>
+                                    {{t 'iqbrims.journal_name'}} <span local-class='IQBRIMS__required'>*</span>
+                                </label>
+                                <div data-test-journal-name class='col-sm-10'>
+                                    {{#if this.modeEdit}}
+                                        {{input
+                                            name='journal_name'
+                                            placeholder=(t 'iqbrims.placeholders.journal_name')
+                                            class='form-control'
+                                            value=this.journalName
+                                            type='text'
+                                            change=(action this.valueChanged)
+                                        }}
+                                    {{else}}
+                                        {{this.journalName}}
+                                    {{/if}}
+                                </div>
+                            </div>
+                            <div class='form-group row'>
+                                <label class='col-sm-2' for='doi'>{{t 'iqbrims.doi'}}</label>
+                                <div class='col-sm-10'>
+                                    {{#if this.modeEdit}}
+                                        {{input
+                                            name='doi'
+                                            placeholder=(t 'iqbrims.placeholders.doi')
+                                            class='form-control'
+                                            value=this.doi
+                                            type='text'
+                                            change=(action this.valueChanged)
+                                        }}
+                                    {{else}}
+                                        {{this.doi}}
+                                    {{/if}}
+                                </div>
+                            </div>
+                            <div class='form-group row'>
+                                <label class='col-sm-2' for='publish_date'>{{t 'iqbrims.publish_date'}}</label>
+                                <div class='col-sm-10'>
+                                    {{#if this.modeEdit}}
+                                        {{validated-input/date
+                                            model=this
+                                            valuePath='publishDate'
+                                            shouldShowMessages=@didValidate
+                                            change=(action this.valueChanged)
+                                        }}
+                                    {{else}}
+                                        {{this.publishDate}}
+                                    {{/if}}
+                                </div>
+                            </div>
+                            <div class='form-group row'>
+                                <label class='col-sm-2' for='volume'>{{t 'iqbrims.volume'}}</label>
+                                <div class='col-sm-10'>
+                                    {{#if this.modeEdit}}
+                                        {{input
+                                            name='volume'
+                                            placeholder=(t 'iqbrims.placeholders.volume')
+                                            class='form-control'
+                                            value=this.volume
+                                            type='text'
+                                            change=(action this.valueChanged)
+                                        }}
+                                    {{else}}
+                                        {{this.volume}}
+                                    {{/if}}
+                                </div>
+                            </div>
+                            <div class='form-group row'>
+                                <label class='col-sm-2' for='page_number'>{{t 'iqbrims.page_number'}}</label>
+                                <div class='col-sm-10'>
+                                    {{#if this.modeEdit}}
+                                        {{input
+                                            name='page_number'
+                                            placeholder=(t 'iqbrims.placeholders.page_number')
+                                            class='form-control'
+                                            value=this.pageNumber
+                                            type='text'
+                                            change=(action this.valueChanged)
+                                        }}
+                                    {{else}}
+                                        {{this.pageNumber}}
+                                    {{/if}}
+                                </div>
+                            </div>
+                            <div class='form-group row'>
+                                <label class='col-sm-2' for='page_number'>{{t 'iqbrims.workflow_overall_state'}}</label>
+                                <div class='col-sm-10'>
+                                    {{this.workflowOverallState}}
+                                </div>
+                            </div>
+                        {{/if}}
+                    </tab.pane>
+                    <tab.pane
+                        @id='IQBRIMS__manuscripts'
+                        @title={{t 'iqbrims.header_manuscripts' }}
+                    >
+                        <h2 local-class='IQBRIMS__header'>{{t 'iqbrims.header_manuscripts' }}</h2>
+                        {{#if (not this.isNotSubmitted)}}
+                            <div class='form-group row'>
+                                <label class='col-sm-2'>{{t 'iqbrims.submit_manuscripts'}}</label>
+                                <div class='col-sm-10'>
+                                    {{this.workflowPaperState}}
+                                </div>
+                            </div>
+                            <div class='row' local-class='IQBRIMS__file_header'>
+                                <div class='col-md-8'>
+                                    {{t 'iqbrims.submitted_name'}}
+                                </div>
+                                <div class='col-md-4'>
+                                    {{t 'iqbrims.submitted_modified'}}
+                                </div>
+                            </div>
+                            {{#each this.manuscriptFiles.gdAllFiles as |item|}}
+                                <div class='row' local-class='IQBRIMS__file_body'>
+                                    <div class='col-md-8'>
+                                        <i class='fa fa-file-o'></i>{{item.name}}
+                                    </div>
+                                    <div class='col-md-4'>
+                                        {{item.dateModified}}
+                                    </div>
                                 </div>
                             {{/each}}
-                            <OsfLink @href='./contributors'>
-                                <OsfButton
-                                    @type='default'
-                                    @size='xs'>
-                                    <i class='fa fa-edit'> {{t 'iqbrims.edit_contributors'}}</i>
-                                </OsfButton>
-                            </OsfLink>
-                        </div>
-                    </div>
-                {{/if}}
-                <div class='form-group row'>
-                    <label class='col-sm-2' for='labo'>
-                        {{t 'iqbrims.labo'}} <span local-class='IQBRIMS__required'>*</span>
-                    </label>
-                    <div data-test-labo-name class='col-sm-10'>
-                        {{#if this.modeEdit}}
-                            <select
-                                data-test-labo-selection
-                                class='form-control'
-                                onchange={{action this.laboChanged value='target.value'}}
-                            >
-                                <option selected={{if (eq this.laboId '') 'selected'}} value=''>
-                                    {{t 'iqbrims.placeholders.labo'}}
-                                </option>
-                                {{#each this.laboList as |item|}}
-                                    <option selected={{if (eq this.laboId item.id) 'selected'}} value='{{item.id}}'>
-                                        {{item.text}}
-                                    </option>
+                            {{#if this.manuscriptFiles.gdLoading}}
+                                <div class='row' local-class='IQBRIMS__file_body'>
+                                    <div class='col-md-12'>{{t 'iqbrims.submitted_loading'}}</div>
+                                </div>
+                            {{else if this.manuscriptFiles.gdEmpty}}
+                                <div class='row' local-class='IQBRIMS__file_body'>
+                                    <div class='col-md-12'>{{t 'iqbrims.submitted_no_data'}}</div>
+                                </div>
+                            {{/if}}
+                            <div class='row' local-class='IQBRIMS__file_footer'>
+                            </div>
+                        {{/if}}
+                        {{#if (and this.modeEdit this.isPaperWritable)}}
+                            {{#if this.manuscriptFiles.rejectedFiles.length}}
+                                <div local-class='IQBRIMS__file_error'>
+                                    {{t 'iqbrims.uploader_rejected_manuscript_files'}}
+                                    {{this.manuscriptFiles.rejectedFiles}}
+                                </div>
+                            {{/if}}
+                            <FileBrowser
+                                @dzUploadButtonClass='dz-manuscript-upload-button'
+                                @user={{this.user}}
+                                @items={{this.manuscriptFiles.files}}
+                                @filter={{this.manuscriptFiles.filter}}
+                                @sort={{this.manuscriptFiles.sort}}
+                                @canEdit={{this.manuscriptFiles.canEdit}}
+                                @newProject={{this.manuscriptFiles.newProject}}
+                                @openFile={{action this.manuscriptFiles.openFile}}
+                                @updateFilter={{perform this.manuscriptFiles.updateFilter}}
+                                @dropZoneId='manuscript-dropzone'
+                                @deleteFiles={{perform this.manuscriptFiles.deleteFiles}}
+                                @moveFile={{perform this.manuscriptFiles.moveFile}}
+                                @renameFile={{perform this.manuscriptFiles.renameFile}}
+                                @addFile={{perform this.manuscriptFiles.addFile}}
+                                @buildUrl={{action this.buildManuscriptFileUrl}}
+                            />
+                        {{/if}}
+                    </tab.pane>
+                    {{#if this.modeDeposit}}
+                        <tab.pane
+                            @id='IQBRIMS__submit_data'
+                            @title={{t 'iqbrims.header_data' }}
+                        >
+                            <h2 local-class='IQBRIMS__header'>{{t 'iqbrims.header_data' }}</h2>
+                            {{#if (not this.isNotSubmitted)}}
+                                <div class='form-group row'>
+                                    <label class='col-sm-2'>{{t 'iqbrims.submit_data'}}</label>
+                                    <div class='col-sm-10'>
+                                        {{this.workflowRawState}}
+                                    </div>
+                                </div>
+                                <div class='form-group row'>
+                                    <div class='col-sm-12 checkbox' local-class='IQBRIMS__checkbox'>
+                                        {{#if this.isDirectlySubmitData}}
+                                            <i class='fa fa-check-square'></i>
+                                        {{else}}
+                                            <i class='fa fa-square'></i>
+                                        {{/if}}
+                                        <label for='is_directly_submit_data'>{{t 'iqbrims.directly_submit_data'}}</label>
+                                    </div>
+                                </div>
+                                <div class='row' local-class='IQBRIMS__file_header'>
+                                    <div class='col-md-8'>
+                                        {{t 'iqbrims.submitted_name'}}
+                                    </div>
+                                    <div class='col-md-4'>
+                                        {{t 'iqbrims.submitted_modified'}}
+                                    </div>
+                                </div>
+                                {{#each this.dataFiles.gdAllFiles as |item|}}
+                                    <div class='row' local-class='IQBRIMS__file_body'>
+                                        <div class='col-md-8'>
+                                            <i class='fa fa-file-o'></i>{{item.name}}
+                                        </div>
+                                        <div class='col-md-4'>
+                                            {{item.dateModified}}
+                                        </div>
+                                    </div>
                                 {{/each}}
-                            </select>
-                        {{else}}
-                            {{this.laboName}}
-                        {{/if}}
-                    </div>
-                </div>
-                <div class='form-group row'>
-                    <label class='col-sm-2' for='email'>{{t 'iqbrims.email'}}</label>
-                    <div class='col-sm-10'>
-                        {{#each this.contributorEmails as |email|}}
-                            <div>
-                                {{email}}
-                            </div>
-                        {{/each}}
-                    </div>
-                </div>
-                {{#if this.modeDeposit}}
-                    <div class='form-group row'>
-                        <label class='col-sm-2' for='accepted_date'>
-                            {{t 'iqbrims.accepted_date'}} <span local-class='IQBRIMS__required'>*</span>
-                        </label>
-                        <div class='col-sm-10'>
-                            {{#if this.modeEdit}}
-                                {{validated-input/date
-                                    model=this
-                                    valuePath='acceptedDate'
-                                    shouldShowMessages=@didValidate
-                                    change=(action this.valueChanged)
-                                }}
-                            {{else}}
-                                {{this.acceptedDate}}
-                            {{/if}}
-                        </div>
-                    </div>
-                    <div class='form-group row'>
-                        <label class='col-sm-2' for='journal_name'>
-                            {{t 'iqbrims.journal_name'}} <span local-class='IQBRIMS__required'>*</span>
-                        </label>
-                        <div data-test-journal-name class='col-sm-10'>
-                            {{#if this.modeEdit}}
-                                {{input
-                                    name='journal_name'
-                                    placeholder=(t 'iqbrims.placeholders.journal_name')
-                                    class='form-control'
-                                    value=this.journalName
-                                    type='text'
-                                    change=(action this.valueChanged)
-                                }}
-                            {{else}}
-                                {{this.journalName}}
-                            {{/if}}
-                        </div>
-                    </div>
-                    <div class='form-group row'>
-                        <label class='col-sm-2' for='doi'>{{t 'iqbrims.doi'}}</label>
-                        <div class='col-sm-10'>
-                            {{#if this.modeEdit}}
-                                {{input
-                                    name='doi'
-                                    placeholder=(t 'iqbrims.placeholders.doi')
-                                    class='form-control'
-                                    value=this.doi
-                                    type='text'
-                                    change=(action this.valueChanged)
-                                }}
-                            {{else}}
-                                {{this.doi}}
-                            {{/if}}
-                        </div>
-                    </div>
-                    <div class='form-group row'>
-                        <label class='col-sm-2' for='publish_date'>{{t 'iqbrims.publish_date'}}</label>
-                        <div class='col-sm-10'>
-                            {{#if this.modeEdit}}
-                                {{validated-input/date
-                                    model=this
-                                    valuePath='publishDate'
-                                    shouldShowMessages=@didValidate
-                                    change=(action this.valueChanged)
-                                }}
-                            {{else}}
-                                {{this.publishDate}}
-                            {{/if}}
-                        </div>
-                    </div>
-                    <div class='form-group row'>
-                        <label class='col-sm-2' for='volume'>{{t 'iqbrims.volume'}}</label>
-                        <div class='col-sm-10'>
-                            {{#if this.modeEdit}}
-                                {{input
-                                    name='volume'
-                                    placeholder=(t 'iqbrims.placeholders.volume')
-                                    class='form-control'
-                                    value=this.volume
-                                    type='text'
-                                    change=(action this.valueChanged)
-                                }}
-                            {{else}}
-                                {{this.volume}}
-                            {{/if}}
-                        </div>
-                    </div>
-                    <div class='form-group row'>
-                        <label class='col-sm-2' for='page_number'>{{t 'iqbrims.page_number'}}</label>
-                        <div class='col-sm-10'>
-                            {{#if this.modeEdit}}
-                                {{input
-                                    name='page_number'
-                                    placeholder=(t 'iqbrims.placeholders.page_number')
-                                    class='form-control'
-                                    value=this.pageNumber
-                                    type='text'
-                                    change=(action this.valueChanged)
-                                }}
-                            {{else}}
-                                {{this.pageNumber}}
-                            {{/if}}
-                        </div>
-                    </div>
-                    <div class='form-group row'>
-                        <label class='col-sm-2' for='page_number'>{{t 'iqbrims.workflow_overall_state'}}</label>
-                        <div class='col-sm-10'>
-                            {{this.workflowOverallState}}
-                        </div>
-                    </div>
-                {{/if}}
-                <h2 local-class='IQBRIMS__header_2'>{{t 'iqbrims.header_manuscripts' }}</h2>
-                {{#if (not this.isNotSubmitted)}}
-                    <div class='form-group row'>
-                        <label class='col-sm-2'>{{t 'iqbrims.submit_manuscripts'}}</label>
-                        <div class='col-sm-10'>
-                            {{this.workflowPaperState}}
-                        </div>
-                    </div>
-                    <div class='row' local-class='IQBRIMS__file_header'>
-                        <div class='col-md-8'>
-                            {{t 'iqbrims.submitted_name'}}
-                        </div>
-                        <div class='col-md-4'>
-                            {{t 'iqbrims.submitted_modified'}}
-                        </div>
-                    </div>
-                    {{#each this.manuscriptFiles.gdAllFiles as |item|}}
-                        <div class='row' local-class='IQBRIMS__file_body'>
-                            <div class='col-md-8'>
-                                <i class='fa fa-file-o'></i>{{item.name}}
-                            </div>
-                            <div class='col-md-4'>
-                                {{item.dateModified}}
-                            </div>
-                        </div>
-                    {{/each}}
-                    {{#if this.manuscriptFiles.gdLoading}}
-                        <div class='row' local-class='IQBRIMS__file_body'>
-                            <div class='col-md-12'>{{t 'iqbrims.submitted_loading'}}</div>
-                        </div>
-                    {{else if this.manuscriptFiles.gdEmpty}}
-                        <div class='row' local-class='IQBRIMS__file_body'>
-                            <div class='col-md-12'>{{t 'iqbrims.submitted_no_data'}}</div>
-                        </div>
-                    {{/if}}
-                    <div class='row' local-class='IQBRIMS__file_footer'>
-                    </div>
-                {{/if}}
-                {{#if (and this.modeEdit this.isPaperWritable)}}
-                    {{#if this.manuscriptFiles.rejectedFiles.length}}
-                        <div local-class='IQBRIMS__file_error'>
-                            {{t 'iqbrims.uploader_rejected_manuscript_files'}}
-                            {{this.manuscriptFiles.rejectedFiles}}
-                        </div>
-                    {{/if}}
-                    <FileBrowser
-                        @dzUploadButtonClass='dz-manuscript-upload-button'
-                        @user={{this.user}}
-                        @items={{this.manuscriptFiles.files}}
-                        @filter={{this.manuscriptFiles.filter}}
-                        @sort={{this.manuscriptFiles.sort}}
-                        @canEdit={{this.manuscriptFiles.canEdit}}
-                        @newProject={{this.manuscriptFiles.newProject}}
-                        @openFile={{action this.manuscriptFiles.openFile}}
-                        @updateFilter={{perform this.manuscriptFiles.updateFilter}}
-                        @dropZoneId='manuscript-dropzone'
-                        @deleteFiles={{perform this.manuscriptFiles.deleteFiles}}
-                        @moveFile={{perform this.manuscriptFiles.moveFile}}
-                        @renameFile={{perform this.manuscriptFiles.renameFile}}
-                        @addFile={{perform this.manuscriptFiles.addFile}}
-                        @buildUrl={{action this.buildManuscriptFileUrl}}
-                    />
-                {{/if}}
-                {{#if this.modeDeposit}}
-                    <h2 local-class='IQBRIMS__header_2'>{{t 'iqbrims.header_data' }}</h2>
-                    {{#if (not this.isNotSubmitted)}}
-                        <div class='form-group row'>
-                            <label class='col-sm-2'>{{t 'iqbrims.submit_data'}}</label>
-                            <div class='col-sm-10'>
-                                {{this.workflowRawState}}
-                            </div>
-                        </div>
-                        <div class='form-group row'>
-                            <div class='col-sm-12 checkbox' local-class='IQBRIMS__checkbox'>
-                                {{#if this.isDirectlySubmitData}}
-                                    <i class='fa fa-check-square'></i>
-                                {{else}}
-                                    <i class='fa fa-square'></i>
+                                {{#if this.dataFiles.gdLoading}}
+                                    <div class='row' local-class='IQBRIMS__file_body'>
+                                        <div class='col-md-12'>{{t 'iqbrims.submitted_loading'}}</div>
+                                    </div>
+                                {{else if this.dataFiles.gdEmpty}}
+                                    <div class='row' local-class='IQBRIMS__file_body'>
+                                        <div class='col-md-12'>{{t 'iqbrims.submitted_no_data'}}</div>
+                                    </div>
                                 {{/if}}
-                                <label for='is_directly_submit_data'>{{t 'iqbrims.directly_submit_data'}}</label>
-                            </div>
-                        </div>
-                        <div class='row' local-class='IQBRIMS__file_header'>
-                            <div class='col-md-8'>
-                                {{t 'iqbrims.submitted_name'}}
-                            </div>
-                            <div class='col-md-4'>
-                                {{t 'iqbrims.submitted_modified'}}
-                            </div>
-                        </div>
-                        {{#each this.dataFiles.gdAllFiles as |item|}}
-                            <div class='row' local-class='IQBRIMS__file_body'>
-                                <div class='col-md-8'>
-                                    <i class='fa fa-file-o'></i>{{item.name}}
+                                <div class='row' local-class='IQBRIMS__file_footer'>
                                 </div>
-                                <div class='col-md-4'>
-                                    {{item.dateModified}}
+                            {{else}}
+                                <div class='form-group row'>
+                                    <div class='col-sm-12 checkbox' local-class='IQBRIMS__checkbox'>
+                                        {{input
+                                            name='is_directly_submit_data'
+                                            id='is_directly_submit_data'
+                                            checked=this.isDirectlySubmitData
+                                            type='checkbox'
+                                        }}
+                                        <label for='is_directly_submit_data'>{{t 'iqbrims.directly_submit_data'}}</label>
+                                    </div>
                                 </div>
-                            </div>
-                        {{/each}}
-                        {{#if this.dataFiles.gdLoading}}
-                            <div class='row' local-class='IQBRIMS__file_body'>
-                                <div class='col-md-12'>{{t 'iqbrims.submitted_loading'}}</div>
-                            </div>
-                        {{else if this.dataFiles.gdEmpty}}
-                            <div class='row' local-class='IQBRIMS__file_body'>
-                                <div class='col-md-12'>{{t 'iqbrims.submitted_no_data'}}</div>
-                            </div>
-                        {{/if}}
-                        <div class='row' local-class='IQBRIMS__file_footer'>
-                        </div>
-                    {{else}}
-                        <div class='form-group row'>
-                            <div class='col-sm-12 checkbox' local-class='IQBRIMS__checkbox'>
-                                {{input
-                                    name='is_directly_submit_data'
-                                    id='is_directly_submit_data'
-                                    checked=this.isDirectlySubmitData
-                                    type='checkbox'
-                                }}
-                                <label for='is_directly_submit_data'>{{t 'iqbrims.directly_submit_data'}}</label>
-                            </div>
-                        </div>
-                    {{/if}}
-                    {{#if (and this.modeEdit this.isRawWritable)}}
-                        {{#if this.dataFiles.rejectedFiles.length}}
-                            <div local-class='IQBRIMS__file_error'>
-                                {{t 'iqbrims.uploader_rejected_data_files'}}
-                                {{this.dataFiles.rejectedFiles}}
-                            </div>
-                        {{/if}}
-                        <FileBrowser
-                            @dzUploadButtonClass='dz-data-upload-button'
-                            @user={{this.user}}
-                            @items={{this.dataFiles.files}}
-                            @filter={{this.dataFiles.filter}}
-                            @sort={{this.dataFiles.sort}}
-                            @canEdit={{this.dataFiles.canEdit}}
-                            @newProject={{this.dataFiles.newProject}}
-                            @openFile={{action this.dataFiles.openFile}}
-                            @updateFilter={{perform this.dataFiles.updateFilter}}
-                            @dropZoneId='data-dropzone'
-                            @deleteFiles={{perform this.dataFiles.deleteFiles}}
-                            @moveFile={{perform this.dataFiles.moveFile}}
-                            @renameFile={{perform this.dataFiles.renameFile}}
-                            @addFile={{perform this.dataFiles.addFile}}
-                            @buildUrl={{action this.buildDataFileUrl}}
-                        />
-                    {{/if}}
-                    <h2 local-class='IQBRIMS__header_2'>{{t 'iqbrims.header_checklist' }}</h2>
-                    {{#if (not this.isNotSubmitted)}}
-                        <div class='form-group row'>
-                            <label class='col-sm-2'>{{t 'iqbrims.submit_checklist'}}</label>
-                            <div class='col-sm-10'>
-                                {{this.workflowChecklistState}}
-                            </div>
-                        </div>
-                        <div class='row' local-class='IQBRIMS__file_header'>
-                            <div class='col-md-8'>
-                                {{t 'iqbrims.submitted_name'}}
-                            </div>
-                            <div class='col-md-4'>
-                                {{t 'iqbrims.submitted_modified'}}
-                            </div>
-                        </div>
-                        {{#each this.checklistFiles.gdAllFiles as |item|}}
-                            <div class='row' local-class='IQBRIMS__file_body'>
-                                <div class='col-md-8'>
-                                    <i class='fa fa-file-o'></i>{{item.name}}
+                            {{/if}}
+                            {{#if (and this.modeEdit this.isRawWritable)}}
+                                {{#if this.dataFiles.rejectedFiles.length}}
+                                    <div local-class='IQBRIMS__file_error'>
+                                        {{t 'iqbrims.uploader_rejected_data_files'}}
+                                        {{this.dataFiles.rejectedFiles}}
+                                    </div>
+                                {{/if}}
+                                <FileBrowser
+                                    @dzUploadButtonClass='dz-data-upload-button'
+                                    @user={{this.user}}
+                                    @items={{this.dataFiles.files}}
+                                    @filter={{this.dataFiles.filter}}
+                                    @sort={{this.dataFiles.sort}}
+                                    @canEdit={{this.dataFiles.canEdit}}
+                                    @newProject={{this.dataFiles.newProject}}
+                                    @openFile={{action this.dataFiles.openFile}}
+                                    @updateFilter={{perform this.dataFiles.updateFilter}}
+                                    @dropZoneId='data-dropzone'
+                                    @deleteFiles={{perform this.dataFiles.deleteFiles}}
+                                    @moveFile={{perform this.dataFiles.moveFile}}
+                                    @renameFile={{perform this.dataFiles.renameFile}}
+                                    @addFile={{perform this.dataFiles.addFile}}
+                                    @buildUrl={{action this.buildDataFileUrl}}
+                                />
+                            {{/if}}
+                        </tab.pane>
+                        <tab.pane
+                            @id='IQBRIMS__checklist'
+                            @title={{t 'iqbrims.header_checklist' }}
+                        >
+                            <h2 local-class='IQBRIMS__header'>{{t 'iqbrims.header_checklist' }}</h2>
+                            {{#if (not this.isNotSubmitted)}}
+                                <div class='form-group row'>
+                                    <label class='col-sm-2'>{{t 'iqbrims.submit_checklist'}}</label>
+                                    <div class='col-sm-10'>
+                                        {{this.workflowChecklistState}}
+                                    </div>
                                 </div>
-                                <div class='col-md-4'>
-                                    {{item.dateModified}}
+                                <div class='row' local-class='IQBRIMS__file_header'>
+                                    <div class='col-md-8'>
+                                        {{t 'iqbrims.submitted_name'}}
+                                    </div>
+                                    <div class='col-md-4'>
+                                        {{t 'iqbrims.submitted_modified'}}
+                                    </div>
                                 </div>
-                            </div>
-                        {{/each}}
-                        {{#if this.checklistFiles.gdLoading}}
-                            <div class='row' local-class='IQBRIMS__file_body'>
-                                <div class='col-md-12'>{{t 'iqbrims.submitted_loading'}}</div>
-                            </div>
-                        {{else if this.checklistFiles.gdEmpty}}
-                            <div class='row' local-class='IQBRIMS__file_body'>
-                                <div class='col-md-12'>{{t 'iqbrims.submitted_no_data'}}</div>
-                            </div>
-                        {{/if}}
-                        <div class='row' local-class='IQBRIMS__file_footer'>
-                        </div>
+                                {{#each this.checklistFiles.gdAllFiles as |item|}}
+                                    <div class='row' local-class='IQBRIMS__file_body'>
+                                        <div class='col-md-8'>
+                                            <i class='fa fa-file-o'></i>{{item.name}}
+                                        </div>
+                                        <div class='col-md-4'>
+                                            {{item.dateModified}}
+                                        </div>
+                                    </div>
+                                {{/each}}
+                                {{#if this.checklistFiles.gdLoading}}
+                                    <div class='row' local-class='IQBRIMS__file_body'>
+                                        <div class='col-md-12'>{{t 'iqbrims.submitted_loading'}}</div>
+                                    </div>
+                                {{else if this.checklistFiles.gdEmpty}}
+                                    <div class='row' local-class='IQBRIMS__file_body'>
+                                        <div class='col-md-12'>{{t 'iqbrims.submitted_no_data'}}</div>
+                                    </div>
+                                {{/if}}
+                                <div class='row' local-class='IQBRIMS__file_footer'>
+                                </div>
+                            {{/if}}
+                            {{#if (and this.modeEdit this.isChecklistWritable)}}
+                                {{#if this.checklistFiles.rejectedFiles.length}}
+                                    <div local-class='IQBRIMS__file_error'>
+                                        {{t 'iqbrims.uploader_rejected_checklist_files'}}
+                                        {{this.checklistFiles.rejectedFiles}}
+                                    </div>
+                                {{/if}}
+                                <FileBrowser
+                                    @dzUploadButtonClass='dz-checklist-upload-button'
+                                    @user={{this.user}}
+                                    @items={{this.checklistFiles.files}}
+                                    @filter={{this.checklistFiles.filter}}
+                                    @sort={{this.checklistFiles.sort}}
+                                    @canEdit={{this.checklistFiles.canEdit}}
+                                    @newProject={{this.checklistFiles.newProject}}
+                                    @openFile={{action this.checklistFiles.openFile}}
+                                    @updateFilter={{perform this.checklistFiles.updateFilter}}
+                                    @dropZoneId='checklist-dropzone'
+                                    @deleteFiles={{perform this.checklistFiles.deleteFiles}}
+                                    @moveFile={{perform this.checklistFiles.moveFile}}
+                                    @renameFile={{perform this.checklistFiles.renameFile}}
+                                    @addFile={{perform this.checklistFiles.addFile}}
+                                    @buildUrl={{action this.buildChecklistFileUrl}}
+                                />
+                            {{/if}}
+                        </tab.pane>
                     {{/if}}
-                    {{#if (and this.modeEdit this.isChecklistWritable)}}
-                        {{#if this.checklistFiles.rejectedFiles.length}}
-                            <div local-class='IQBRIMS__file_error'>
-                                {{t 'iqbrims.uploader_rejected_checklist_files'}}
-                                {{this.checklistFiles.rejectedFiles}}
-                            </div>
-                        {{/if}}
-                        <FileBrowser
-                            @dzUploadButtonClass='dz-checklist-upload-button'
-                            @user={{this.user}}
-                            @items={{this.checklistFiles.files}}
-                            @filter={{this.checklistFiles.filter}}
-                            @sort={{this.checklistFiles.sort}}
-                            @canEdit={{this.checklistFiles.canEdit}}
-                            @newProject={{this.checklistFiles.newProject}}
-                            @openFile={{action this.checklistFiles.openFile}}
-                            @updateFilter={{perform this.checklistFiles.updateFilter}}
-                            @dropZoneId='checklist-dropzone'
-                            @deleteFiles={{perform this.checklistFiles.deleteFiles}}
-                            @moveFile={{perform this.checklistFiles.moveFile}}
-                            @renameFile={{perform this.checklistFiles.renameFile}}
-                            @addFile={{perform this.checklistFiles.addFile}}
-                            @buildUrl={{action this.buildChecklistFileUrl}}
-                        />
-                    {{/if}}
-                {{/if}}
+                </BsTab>
                 {{#if this.modeEdit}}
                     <div class='text-right' local-class='IQBRIMS__buttons'>
                         {{#if this.submitting}}
