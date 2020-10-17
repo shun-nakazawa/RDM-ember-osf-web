@@ -42,7 +42,7 @@ export default class NodeNavbar extends Component {
         if (!this.node) {
             return null;
         }
-        let node = this.node;
+        const { node } = this;
         return (async () => {
             const addons = await node.addons;
             if (!addons) {

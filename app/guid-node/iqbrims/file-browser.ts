@@ -1,7 +1,5 @@
-import EmberObject from '@ember/object';
-
-import { action, computed } from '@ember/object';
 import { A } from '@ember/array';
+import EmberObject, { action, computed } from '@ember/object';
 import { later } from '@ember/runloop';
 import { all, task, timeout } from 'ember-concurrency';
 
@@ -237,7 +235,7 @@ export default class IQBRIMSFileBrowser extends EmberObject {
             }, 500);
             return undefined;
         }
-        const files = defaultStorage.rootFolder.filter(f => f.name === this.folderName);
+        const files = defaultStorage.rootFolder.files.filter(f => f.name === this.folderName);
         if (files.length === 0) {
             return undefined;
         }

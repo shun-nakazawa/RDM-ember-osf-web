@@ -1,8 +1,8 @@
+import Controller from '@ember/controller';
+import EmberError from '@ember/error';
 import { action, computed } from '@ember/object';
 import { reads } from '@ember/object/computed';
 import { inject as service } from '@ember/service';
-import Controller from '@ember/controller';
-import EmberError from '@ember/error';
 
 import DS from 'ember-data';
 
@@ -953,7 +953,7 @@ export default class GuidNodeIQBRIMS extends Controller {
             }, 500);
             return undefined;
         }
-        const files = defaultStorage.rootFolder.filter(f => f.name === this.workingFolderName);
+        const files = defaultStorage.rootFolder.files.filter(f => f.name === this.workingFolderName);
         if (files.length === 0) {
             this.createWorkingDirectory(defaultStorage);
             return undefined;

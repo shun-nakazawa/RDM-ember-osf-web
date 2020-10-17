@@ -290,7 +290,7 @@ module('Integration | Component | node-navbar', () => {
 
                 const node = new FakeNode(testCase.conditions);
                 this.set('node', node);
-                const iqbrimsEnabled = testCase.conditions.filter((c) => c === NavCondition.IQBRIMSEnabled);
+                const iqbrimsEnabled = testCase.conditions.filter(c => c === NavCondition.IQBRIMSEnabled);
                 this.set('iqbrimsEnabled', iqbrimsEnabled.length > 0);
 
                 await render(hbs`{{node-navbar node=this.node iqbrimsEnabled=this.iqbrimsEnabled renderInPlace=true}}`);

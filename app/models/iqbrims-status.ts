@@ -1,5 +1,5 @@
-import OsfModel from './osf-model';
 import DS from 'ember-data';
+import OsfModel from './osf-model';
 
 const { attr } = DS;
 

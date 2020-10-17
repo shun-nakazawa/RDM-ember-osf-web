@@ -236,7 +236,7 @@ new_project:
     storage_region: 'Storage location'
     could_not_create_project: 'Could not create project'
     creating: 'Saving your project...'
-    create_failed_header: 'Couldn\'t create your project'
+    create_failed_header: 'Couldn''t create your project'
     create_failed_msg: 'There was an unknown error. Please try again later.'
 banners:
     prereg:
@@ -1678,7 +1678,7 @@ dev_tools:
         toast_events: 'Display toast for tracked events'
         show_url_bar: 'Show URL bar -- navigate by URL without reloading'
 iqbrims:
-    page_title: '{{nodeTitle}} IQB-RIMS'
+    page_title: '{nodeTitle} IQB-RIMS'
     header_overview: 'Overview of Paper'
     header_manuscripts: 'Final Manuscript/Composition'
     header_data: 'Raw Data'
