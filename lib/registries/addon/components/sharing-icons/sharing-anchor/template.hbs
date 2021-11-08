@@ -2,12 +2,17 @@
     <OsfLink
         data-analytics-name={{@analyticsName}}
         data-test-share-registration={{@medium}}
+        aria-label={{unless @showText (t 'registries.sharingIcons.label' mediaType=@medium)}}
         @href={{this.href}}
         target='_blank'
         rel='noopener noreferrer'
         ...attributes
     >
-        <FaIcon @icon={{@icon}} @fixedWidth={{true}} />
+        <FaIcon
+            @icon={{@icon}}
+            @fixedWidth={{true}}
+            @prefix={{if (eq @icon 'envelope') 'fas' 'fab'}}
+        />
         {{#if @showText}}
             {{@medium}}
         {{/if}}

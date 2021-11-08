@@ -3,7 +3,6 @@
         local-class='branded-nav'
         class='navbar navbar-inverse navbar-fixed-top'
         id='navbarScope'
-        role='navigation'
     >
         <div class='container'>
             <div class='navbar-header'>
@@ -27,8 +26,8 @@
 
             {{! Secondary nav links }}
             <BsCollapse
+                class='navbar-collapse navbar-right'
                 local-class='secondary-navigation'
-                @classNames='navbar-collapse navbar-right'
                 @collapsed={{not this.showNavLinks}}
             >
                 <ul class='nav navbar-nav' local-class='links'>
@@ -43,7 +42,7 @@
                     <li>
                         {{#link-to
                             'provider.submit'
-                            click=(action 'click' 'link' (concat 'Navbar - Add ' @objectType) target=this.analytics)
+                            click=(action 'click' 'link' (concat 'Navbar - ' (t @addLinkKey) ' - ' this.theme.id) target=this.analytics)
                         }}
                             <span role='button'>{{t @addLinkKey}}</span>
                         {{/link-to}}
@@ -67,10 +66,10 @@
                     <OsfNavbar::AuthDropdown
                         @signupUrl={{@signupUrl}}
                         @loginAction={{@loginAction}}
-                        @redirectUrl={{@redirectUrl}}
                         @onLinkClicked={{action (mut this.showNavLinks) false}}
                         @headline={{t 'app_components.branded_navbar.on_the_osf'}}
                         @externalLink={{true}}
+                        @campaign={{this.campaign}}
                     />
                 </ul>
             </BsCollapse>

@@ -1,10 +1,8 @@
 import Component from '@ember/component';
-import { action, computed } from '@ember/object';
-import { inject as service } from '@ember/service';
+import { computed } from '@ember/object';
 import { localClassNames } from 'ember-css-modules';
 
 import { layout } from 'ember-osf-web/decorators/component';
-import Analytics from 'ember-osf-web/services/analytics';
 import { ShareRegistration } from 'registries/services/share-search';
 
 import template from './template';
@@ -16,10 +14,6 @@ const OSF_GUID_REGEX = /^https?:\/\/.*osf\.io\/([^/]+)/;
 export default class RegistriesSearchResult extends Component {
     // Required
     result!: ShareRegistration;
-
-    // Private
-    @service analytics!: Analytics;
-    expanded = false;
 
     // For use later, when the registration overview page is implemented
     // @computed('result')
@@ -33,7 +27,7 @@ export default class RegistriesSearchResult extends Component {
     //     return false;
     // }
 
-    @computed('result')
+    @computed('result.contributors')
     get contributors() {
         return this.result.contributors.filter(
             contrib => contrib.bibliographic,
@@ -41,21 +35,5 @@ export default class RegistriesSearchResult extends Component {
             name: contrib.name,
             link: contrib.identifiers.filter(ident => OSF_GUID_REGEX.test(ident))[0],
         }));
-    }
-
-    @computed('expanded')
-    get footerIcon() {
-        return this.expanded ? 'caret-up' : 'caret-down';
-    }
-
-    @action
-    toggleExpanded() {
-        this.set('expanded', !this.expanded);
-        this.analytics.track(
-            'result',
-            this.expanded ? 'expand' : 'contract',
-            `Discover - ${this.result.title}`,
-            this.result.id,
-        );
     }
 }

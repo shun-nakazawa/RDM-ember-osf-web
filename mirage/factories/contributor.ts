@@ -1,4 +1,4 @@
-import { association, Collection, Factory, faker, trait, Trait } from 'ember-cli-mirage';
+import { association, Collection, Factory, trait, Trait } from 'ember-cli-mirage';
 
 import Contributor from 'ember-osf-web/models/contributor';
 import { Permission } from 'ember-osf-web/models/osf-model';
@@ -8,30 +8,37 @@ interface ContributorTraits {
     unregistered: Trait;
 }
 
-export default Factory.extend<Contributor & ContributorTraits>({
-    permission: faker.list.cycle(...Object.values(Permission)),
-    bibliographic: true,
-    unregisteredContributor() {
-        return faker.random.number(5) ? undefined : faker.name.firstName();
+export interface MirageContributor extends Contributor {
+    usersId: string | number | null;
+}
+
+export default Factory.extend<MirageContributor & ContributorTraits>({
+    permission(i: number) {
+        const permissions = Object.values(Permission);
+        return permissions[i % permissions.length];
     },
+    bibliographic: true,
+    unregisteredContributor: undefined,
     index(i: number) {
         return i;
     },
     users: association() as Contributor['users'],
 
-    fullName() {
-        return `${faker.name.firstName()} ${faker.name.lastName()}`;
-    },
-
     afterCreate(contributor) {
         if (contributor.bibliographic) {
-            const { node } = contributor;
+            const { node, draftRegistration } = contributor;
             if (node) {
                 node.bibliographicContributors = [
                     ...node.bibliographicContributors.models,
                     contributor,
                 ] as unknown as Collection<Contributor>;
                 node.save();
+            } else if (draftRegistration) {
+                draftRegistration.bibliographicContributors = [
+                    ...draftRegistration.bibliographicContributors.models,
+                    contributor,
+                ] as unknown as Collection<Contributor>;
+                draftRegistration.save();
             }
         }
     },
@@ -40,8 +47,14 @@ export default Factory.extend<Contributor & ContributorTraits>({
     unregistered: trait({ unregisteredContributor: 'unregistered' }),
 });
 
+declare module 'ember-cli-mirage/types/registries/model' {
+    export default interface MirageModelRegistry {
+        contributor: MirageContributor;
+    } // eslint-disable-line semi
+}
+
 declare module 'ember-cli-mirage/types/registries/schema' {
     export default interface MirageSchemaRegistry {
-        contributors: Contributor;
+        contributors: MirageContributor;
     } // eslint-disable-line semi
 }

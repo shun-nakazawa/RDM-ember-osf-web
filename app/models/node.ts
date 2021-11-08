@@ -1,23 +1,23 @@
+import { attr, belongsTo, hasMany, AsyncBelongsTo, AsyncHasMany } from '@ember-data/model';
+
 import { computed } from '@ember/object';
 import { alias, bool, equal, not } from '@ember/object/computed';
 import { htmlSafe } from '@ember/string';
 import { buildValidations, validator } from 'ember-cp-validations';
 import DS from 'ember-data';
 
-import defaultTo from 'ember-osf-web/utils/default-to';
 import getRelatedHref from 'ember-osf-web/utils/get-related-href';
 
-import BaseFileItem from './base-file-item';
+import AbstractNodeModel from 'ember-osf-web/models/abstract-node';
 import CitationModel from './citation';
 import CommentModel from './comment';
 import ContributorModel from './contributor';
-import DraftRegistrationModel from './draft-registration';
-import FileProviderModel from './file-provider';
 import IdentifierModel from './identifier';
 import InstitutionModel from './institution';
 import LicenseModel from './license';
 import LogModel from './log';
 import NodeAddonModel from './node-addon';
+import NodeStorageModel from './node-storage';
 import { Permission } from './osf-model';
 import PreprintModel from './preprint';
 import RegionModel from './region';
@@ -25,8 +25,6 @@ import RegistrationModel from './registration';
 import SubjectModel from './subject';
 import UserModel from './user';
 import WikiModel from './wiki';
-
-const { attr, belongsTo, hasMany } = DS;
 
 const Validations = buildValidations({
     title: [
@@ -88,7 +86,7 @@ export interface NodeLicense {
     readonly year?: string;
 }
 
-export default class NodeModel extends BaseFileItem.extend(Validations, CollectableValidations) {
+export default class NodeModel extends AbstractNodeModel.extend(Validations, CollectableValidations) {
     @attr('fixstring') title!: string;
     @attr('fixstring') description!: string;
     @attr('node-category') category!: NodeCategory;
@@ -111,25 +109,25 @@ export default class NodeModel extends BaseFileItem.extend(Validations, Collecta
     @attr('boolean') wikiEnabled!: boolean;
 
     @hasMany('contributor', { inverse: 'node' })
-    contributors!: DS.PromiseManyArray<ContributorModel>;
+    contributors!: AsyncHasMany<ContributorModel> & ContributorModel[];
 
     @hasMany('contributor', { inverse: null })
-    bibliographicContributors!: DS.PromiseManyArray<ContributorModel>;
+    bibliographicContributors!: AsyncHasMany<ContributorModel>;
 
     @belongsTo('node', { inverse: 'children' })
-    parent!: DS.PromiseObject<NodeModel> & NodeModel;
+    parent!: AsyncBelongsTo<NodeModel> & NodeModel;
 
     @belongsTo('region')
     region!: RegionModel;
 
     @hasMany('node', { inverse: 'parent' })
-    children!: DS.PromiseManyArray<NodeModel>;
+    children!: AsyncHasMany<NodeModel>;
 
     @hasMany('preprint', { inverse: 'node' })
-    preprints!: DS.PromiseManyArray<PreprintModel>;
+    preprints!: AsyncHasMany<PreprintModel>;
 
     @hasMany('institution', { inverse: 'nodes' })
-    affiliatedInstitutions!: DS.PromiseManyArray<InstitutionModel> | InstitutionModel[];
+    affiliatedInstitutions!: AsyncHasMany<InstitutionModel> | InstitutionModel[];
 
     @belongsTo('user', { inverse: null })
     creator!: DS.PromiseObject<UserModel> & UserModel;
@@ -139,53 +137,49 @@ export default class NodeModel extends BaseFileItem.extend(Validations, Collecta
     @attr('number') quotaThreshold!: number;
 
     @hasMany('comment', { inverse: 'node' })
-    comments!: DS.PromiseManyArray<CommentModel>;
+    comments!: AsyncHasMany<CommentModel>;
 
     @belongsTo('citation')
-    citation!: DS.PromiseObject<CitationModel> & CitationModel;
+    citation!: AsyncBelongsTo<CitationModel> & CitationModel;
 
     @belongsTo('license', { inverse: null })
-    license!: DS.PromiseObject<LicenseModel> & LicenseModel;
-
-    @hasMany('file-provider', { inverse: 'node' })
-    files!: DS.PromiseManyArray<FileProviderModel>;
+    license!: AsyncBelongsTo<LicenseModel> & LicenseModel;
 
     @hasMany('node', { inverse: null })
-    linkedNodes!: DS.PromiseManyArray<NodeModel>;
+    linkedNodes!: AsyncHasMany<NodeModel> & NodeModel[];
 
     @hasMany('registration', { inverse: null })
-    linkedRegistrations!: DS.PromiseManyArray<RegistrationModel>;
+    linkedRegistrations!: AsyncHasMany<RegistrationModel>;
 
     @hasMany('registration', { inverse: 'registeredFrom' })
-    registrations!: DS.PromiseManyArray<RegistrationModel>;
-
-    @hasMany('draft-registration', { inverse: 'branchedFrom' })
-    draftRegistrations!: DS.PromiseManyArray<DraftRegistrationModel>;
+    registrations!: AsyncHasMany<RegistrationModel>;
 
     @hasMany('node', { inverse: 'forkedFrom' })
-    forks!: DS.PromiseManyArray<NodeModel>;
+    forks!: AsyncHasMany<NodeModel>;
 
     @belongsTo('node', { inverse: 'forks', polymorphic: true })
-    forkedFrom!: (DS.PromiseObject<NodeModel> & NodeModel) |
-        (DS.PromiseObject<RegistrationModel> & RegistrationModel);
+    forkedFrom!: (AsyncBelongsTo<NodeModel> & NodeModel) | (AsyncBelongsTo<RegistrationModel> & RegistrationModel);
 
     @belongsTo('node', { inverse: null })
-    root!: DS.PromiseObject<NodeModel> & NodeModel;
+    root!: AsyncBelongsTo<NodeModel> & NodeModel;
+
+    @belongsTo('node-storage', { inverse: null })
+    storage!: AsyncBelongsTo<NodeStorageModel> & NodeStorageModel;
 
     @hasMany('node', { inverse: null })
-    linkedByNodes!: DS.PromiseManyArray<NodeModel>;
+    linkedByNodes!: AsyncHasMany<NodeModel>;
 
     @hasMany('node', { inverse: null })
-    linkedByRegistrations!: DS.PromiseManyArray<RegistrationModel>;
+    linkedByRegistrations!: AsyncHasMany<RegistrationModel>;
 
     @hasMany('wiki', { inverse: 'node' })
-    wikis!: DS.PromiseManyArray<WikiModel>;
+    wikis!: AsyncHasMany<WikiModel>;
 
     @hasMany('log', { inverse: 'originalNode' })
-    logs!: DS.PromiseManyArray<LogModel>;
+    logs!: AsyncHasMany<LogModel>;
 
     @hasMany('identifier', { inverse: 'referent' })
-    identifiers!: DS.PromiseManyArray<IdentifierModel>;
+    identifiers!: AsyncHasMany<IdentifierModel>;
 
     @hasMany('subject', { inverse: null, async: false })
     subjects!: SubjectModel[];
@@ -257,7 +251,7 @@ export default class NodeModel extends BaseFileItem.extend(Validations, Collecta
         return htmlSafe(this.title);
     }
 
-    @computed('root')
+    @computed('id', 'root')
     get isRoot() {
         const rootId = (this as NodeModel).belongsTo('root').id();
         return !rootId || rootId === this.id;
@@ -265,7 +259,7 @@ export default class NodeModel extends BaseFileItem.extend(Validations, Collecta
 
     // BaseFileItem override
     isNode = true;
-    collectable: boolean = defaultTo(this.collectable, false);
+    collectable = false;
 
     makeFork(): Promise<object> {
         const url = getRelatedHref(this.links.relationships!.forks);

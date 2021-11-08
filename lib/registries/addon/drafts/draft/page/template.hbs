@@ -1,4 +1,4 @@
-{{title (t 'registries.drafts.draft.form.title')}}
+{{page-title (t 'registries.drafts.draft.form.title')}}
 
 {{#let
     this.draftRegistrationManager
@@ -14,6 +14,7 @@
         >
             {{#if navManager.currentPageManager}}
                 <Registries::PageRenderer
+                    @draftRegistration={{draftManager.draftRegistration}}
                     @pageManager={{navManager.currentPageManager}}
                     @onInput={{perform draftManager.onPageInput navManager.currentPageManager}}
                     @node={{this.node}}

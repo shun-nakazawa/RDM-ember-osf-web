@@ -1,10 +1,11 @@
+import Store from '@ember-data/store';
 import Component from '@ember/component';
 import { computed } from '@ember/object';
 import { reads } from '@ember/object/computed';
 import { inject as service } from '@ember/service';
-import { htmlSafe } from '@ember/string';
-import { task } from 'ember-concurrency-decorators';
-import DS from 'ember-data';
+import { htmlSafe } from '@ember/template';
+import { waitFor } from '@ember/test-waiters';
+import { task } from 'ember-concurrency';
 
 import { layout } from 'ember-osf-web/decorators/component';
 import Banner from 'ember-osf-web/models/banner';
@@ -15,7 +16,7 @@ import template from './template';
 
 @layout(template, styles)
 export default class ScheduledBanners extends Component {
-    @service store!: DS.Store;
+    @service store!: Store;
     @service analytics!: Analytics;
 
     @reads('loadBanner.last.value')
@@ -30,8 +31,9 @@ export default class ScheduledBanners extends Component {
     }
 
     @task({ on: 'init' })
-    loadBanner = task(function *(this: ScheduledBanners) {
-        const banner = yield this.store.findRecord('banner', 'current');
+    @waitFor
+    async loadBanner() {
+        const banner = await this.store.findRecord('banner', 'current');
         return banner.name ? banner : null;
-    });
+    }
 }

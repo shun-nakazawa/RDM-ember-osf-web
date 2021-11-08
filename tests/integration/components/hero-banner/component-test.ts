@@ -1,7 +1,7 @@
 import { render } from '@ember/test-helpers';
 import a11yAudit from 'ember-a11y-testing/test-support/audit';
 import { hbs } from 'ember-cli-htmlbars';
-import setupMirage from 'ember-cli-mirage/test-support/setup-mirage';
+import { setupMirage } from 'ember-cli-mirage/test-support';
 import config from 'ember-get-config';
 import { setupIntl, t } from 'ember-intl/test-support';
 import { setupRenderingTest } from 'ember-qunit';
@@ -16,6 +16,7 @@ module('Integration | Component | Hero banner', hooks => {
 
     test('it renders', async function(assert) {
         // Setup router
+        // eslint-disable-next-line ember/no-private-routing-service
         const router = this.owner.lookup('router:main');
         router.setupRouter();
 
@@ -32,6 +33,7 @@ module('Integration | Component | Hero banner', hooks => {
     test('it renders version B', async function(assert) {
         const features = this.owner.lookup('service:features');
         // Setup router
+        // eslint-disable-next-line ember/no-private-routing-service
         const router = this.owner.lookup('router:main');
         router.setupRouter();
 

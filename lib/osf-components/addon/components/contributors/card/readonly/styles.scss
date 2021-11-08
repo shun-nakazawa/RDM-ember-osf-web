@@ -1,30 +1,30 @@
 .CardContainer {
-    margin: 0;
-    height: 60px;
-
-    &:not(:first-of-type) {
-        margin-top: 10px;
-    }
-
-    &:not(:last-of-type) {
-        border-bottom: 1px solid $color-border-gray;
-        margin-bottom: 10px;
-    }
+    composes: CardContainer from '../styles.scss';
 }
 
 .MainSection {
-    display: flex;
-    height: inherit;
-    align-items: center;
-    padding-left: 20px;
+    composes: MainSection from '../styles.scss';
 }
 
 .CardSection {
-    flex: 1 0 auto;
-    max-width: 30%;
+    composes: CardSection from '../styles.scss';
+    width: 34%;
+}
 
-    &:first-of-type {
-        flex: 2 0 auto;
-        max-width: 40%;
-    }
+.CardSectionSmall {
+    composes: CardSection from '../styles.scss';
+    overflow: hidden;
+}
+
+.CardSectionXS {
+    composes: CardSection from '../styles.scss';
+    max-width: 4%;
+}
+
+.DropdownSection {
+    composes: DropdownSection from '../styles.scss';
+}
+
+.DropdownList {
+    composes: DropdownList from '../styles.scss';
 }

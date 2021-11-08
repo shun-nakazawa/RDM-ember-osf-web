@@ -4,11 +4,10 @@ import {
     currentURL,
     fillIn,
     settled,
-    triggerEvent,
     triggerKeyEvent,
     visit,
 } from '@ember/test-helpers';
-import setupMirage from 'ember-cli-mirage/test-support/setup-mirage';
+import { setupMirage } from 'ember-cli-mirage/test-support';
 import config from 'ember-get-config';
 import { percySnapshot } from 'ember-percy';
 import moment from 'moment';
@@ -359,7 +358,9 @@ module('Acceptance | guid file', hooks => {
             await visit(`--file/${file.guid}`);
 
             await click('[data-test-revisions-tab]');
+            await settled();
             await percySnapshot(assert);
+
             assert.dom('[data-test-version-cell="1"]').hasText('1', 'initial state');
             assert.dom('[data-test-select-version="1"]').exists('initial state');
             assert.dom('[data-test-modified-date-cell="2"]')
@@ -468,8 +469,9 @@ module('Acceptance | guid file', hooks => {
             assert.dom('[data-test-tags-widget-tag="plugh"]')
                 .doesNotExist();
 
-            await fillIn('input[class*="emberTagInput-input"]', 'plugh');
-            await triggerEvent('input[class*="emberTagInput-input"]', 'blur');
+            await fillIn('[data-test-tags-widget-tag-input] input', 'plugh');
+            await triggerKeyEvent('[data-test-tags-widget-tag-input] input', 'keydown', 'Enter');
+
             assert.dom('[data-test-tags-widget-tag="plugh"]')
                 .exists();
         });

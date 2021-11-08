@@ -1,13 +1,11 @@
-.RegistriesSearchResult__Title {
-    font-weight: 400;
+// stylelint-disable selector-no-qualifying-type
+h3.RegistriesSearchResult__Title {
+    line-height: inherit;
+    margin-top: 10px;
 }
 
 .RegistriesSearchResult__Sources {
     font-weight: 700;
-}
-
-.RegistriesSearchResult__Toggle:focus {
-    outline: 0;
 }
 
 .RegistriesSearchResult__HyperLinks {
@@ -21,25 +19,11 @@
 }
 
 .Description {
-    max-height: 42px;  // Roughtly 2x line height;
-    overflow-y: hidden;
+    height: 42px;  // Roughtly 2x line height;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
     transition: max-height 0.5s cubic-bezier(0, 1, 0, 1);
-
-    &.Expanded {
-        max-height: 500px;
-        transition: max-height 1s ease-in-out;
-    }
-}
-
-.Details {
-    max-height: 0;
-    overflow-y: hidden;
-    transition: max-height 0.5s cubic-bezier(0, 1, 0, 1);
-
-    &.Expanded {
-        max-height: 500px;
-        transition: max-height 1s ease-in-out;
-    }
 }
 
 .Contributors {
@@ -54,7 +38,7 @@
         padding-right: 5px;
 
         &::after {
-            content: ', ';
+            content: ',';
         }
     }
 

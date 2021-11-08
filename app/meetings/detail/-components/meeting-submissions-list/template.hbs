@@ -2,8 +2,9 @@
     <div class='col-xs-12 col-sm-6 col-sm-offset-6'>
         <Input
             @type='text'
-            @placeholder='Search'
+            @placeholder={{t 'meetings.index.meetings-list.search'}}
             @key-up={{perform this.searchSubmissions}}
+            aria-label={{t 'meetings.index.meetings-list.search'}}
         />
     </div>
 </div>
@@ -23,24 +24,25 @@
                 sortAction=(action this.sortSubmissions)
                 sort=this.sort
             ) as |SortButton|}}
-                <div data-test-submissions-list-header-title style='width: 40%'>
+                <div data-test-submissions-list-header-title local-class='HeaderWide'>
                     {{t 'meetings.detail.meeting-submissions-list.title'}}
                     <SortButton @sortBy='title' />
                 </div>
-                <div data-test-submissions-list-header-author style='width: 15%'>
+                <div data-test-submissions-list-header-author local-class='HeaderNarrow'>
                     {{t 'meetings.detail.meeting-submissions-list.author'}}
                     <SortButton @sortBy='author_name' />
                 </div>
-                <div data-test-submissions-list-header-category style='width: 15%'>
+                <div data-test-submissions-list-header-category local-class='HeaderNarrow'>
                     {{t 'meetings.detail.meeting-submissions-list.category'}}
                     <SortButton @sortBy='meeting_category' />
                 </div>
-                <div data-test-submissions-list-header-date style='width: 15%'>
+                <div data-test-submissions-list-header-date local-class='HeaderNarrow'>
                     {{t 'meetings.detail.meeting-submissions-list.dateCreated'}}
                     <SortButton @sortBy='created' />
                 </div>
-                <div data-test-submissions-list-header-download style='width: 15%'>
+                <div data-test-submissions-list-header-download local-class='HeaderNarrow'>
                     {{t 'meetings.detail.meeting-submissions-list.downloads'}}
+                    <SortButton @sortBy='download_count' />
                 </div>
             {{/let}}
         </list.header>
@@ -62,13 +64,14 @@
                 </div>
                 <div data-test-submissions-list-item-download>
                     {{#if submission.links.download}}
-                        <OsfButton
+                        <BsButton
+                            aria-label={{t 'general.download'}}
                             @type='success'
                             class='btn-xs'
                             @onClick={{action this.downloadFile submission}}
                         >
                             <FaIcon @icon='download' class='fa-inverse' />
-                        </OsfButton>
+                        </BsButton>
                         {{submission.downloadCount}}
                     {{/if}}
                 </div>

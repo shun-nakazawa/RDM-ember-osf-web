@@ -1,5 +1,5 @@
 import { click as untrackedClick, fillIn } from '@ember/test-helpers';
-import setupMirage from 'ember-cli-mirage/test-support/setup-mirage';
+import { setupMirage } from 'ember-cli-mirage/test-support';
 import { percySnapshot } from 'ember-percy';
 import faker from 'faker';
 import { module, test } from 'qunit';
@@ -161,6 +161,23 @@ module('Collections | Acceptance | submit', hooks => {
             await untrackedClick(firstVolumeOption);
         } else {
             throw new Error('could not find volume option');
+        }
+
+        // fields only available for Character Lab
+        await untrackedClick('[data-test-metadata-field="school_type_label"] .ember-power-select-trigger');
+        const firstSchoolTypeOption = document.querySelector('.ember-power-select-option');
+        if (firstSchoolTypeOption) {
+            await untrackedClick(firstSchoolTypeOption);
+        } else {
+            throw new Error('could not find school type option');
+        }
+
+        await untrackedClick('[data-test-metadata-field="study_design_label"] .ember-power-select-trigger');
+        const firstStudyDesignOption = document.querySelector('.ember-power-select-option');
+        if (firstStudyDesignOption) {
+            await untrackedClick(firstStudyDesignOption);
+        } else {
+            throw new Error('could not find study design option');
         }
 
         assert.dom('[data-test-collection-metadata] [data-test-submit-section-continue]')

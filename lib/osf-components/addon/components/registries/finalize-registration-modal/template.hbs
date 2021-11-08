@@ -9,7 +9,7 @@
     </dialog.heading>
     <dialog.main data-test-finalize-main>
         <div local-class='notice'>
-            {{t 'registries.finalizeRegistrationModal.notice' learnMoreLink=this.learnMoreLink htmlSafe=true}}
+            {{this.noticeText}}
         </div>
         <div>
             <RadioButton
@@ -21,14 +21,6 @@
                     {{t 'registries.finalizeRegistrationModal.immediateOption'}}
                 </span>
             </RadioButton>
-            {{#if (eq this.makePublicOption 'immediate')}}
-                <span local-class='create-doi-option'>
-                    <label data-test-create-doi-label>
-                        <Input @type='checkbox' @checked={{this.manager.registration.createDoi}} />
-                        {{t 'registries.finalizeRegistrationModal.createDoi'}}
-                    </label>
-                </span>
-            {{/if}}
         </div>
         <div>
             <RadioButton
@@ -52,24 +44,24 @@
         </div>
     </dialog.main>
     <dialog.footer>
-        <OsfButton
+        <BsButton
             data-test-submit-registration-button
+            disabled={{this.shouldDisableSubmitButton}}
             @type='primary'
             @onClick={{this.manager.submitRegistration}}
-            @disabled={{this.shouldDisableSubmitButton}}
         >
             {{#if this.manager.submittingRegistration}}
                 <LoadingIndicator @inline={{true}} />
             {{else}}
                 {{t 'registries.finalizeRegistrationModal.submit'}}
             {{/if}}
-        </OsfButton>
-        <OsfButton
+        </BsButton>
+        <BsButton
             data-test-back-button
             @type='default'
             @onClick={{@onBack}}
         >
             {{t 'registries.finalizeRegistrationModal.back'}}
-        </OsfButton>
+        </BsButton>
     </dialog.footer>
 </OsfDialog>

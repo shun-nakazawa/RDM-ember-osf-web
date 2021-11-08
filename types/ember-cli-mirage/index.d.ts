@@ -1,11 +1,11 @@
 /* eslint-disable max-classes-per-file */
+import { AsyncBelongsTo, AsyncHasMany } from '@ember-data/model';
 import MirageModelRegistry from 'ember-cli-mirage/types/registries/model';
 import MirageSchemaRegistry from 'ember-cli-mirage/types/registries/schema';
-import DS from 'ember-data';
 import EmberDataModelRegistry from 'ember-data/types/registries/model';
+import { BelongsTo } from 'miragejs/-types';
 import { Document } from 'osf-api';
-
-export { default as faker } from 'faker';
+import { default as EmberDataModel } from '@ember-data/model';
 
 declare global {
     // eslint-disable-next-line no-redeclare
@@ -36,13 +36,13 @@ export interface Database {
     [collectionName: string]: DatabaseCollection;
 }
 
-export type Model<T> = {
+export type ModelInstanceAttrs<T> = {
     [P in keyof T]:
-        T[P] extends DS.Model & DS.PromiseObject<infer M> ? ModelInstance<M> :
-        T[P] extends DS.Model ? ModelInstance<T[P]> :
-        T[P] extends DS.PromiseManyArray<infer M> ? Collection<M> :
-        T[P] extends DS.Model[] & DS.PromiseManyArray<infer M> ? Collection<M> :
-        T[P] extends DS.Model[] ? Collection<T[P]> :
+        T[P] extends EmberDataModel & AsyncBelongsTo<infer M> ? ModelInstance<M> :
+        T[P] extends EmberDataModel ? ModelInstance<T[P]> :
+        T[P] extends AsyncHasMany<infer M> ? Collection<M> :
+        T[P] extends EmberDataModel[] & AsyncBelongsTo<infer M> ? Collection<M> :
+        T[P] extends EmberDataModel[] ? Collection<T[P]> :
         T[P] extends Date ? Date | string :
         T[P];
 };
@@ -62,13 +62,20 @@ interface ModelInstanceShared<T> {
     toString(): string;
 }
 
-export type ModelInstance<T = AnyAttrs> = ModelInstanceShared<T> & Model<T>;
+export function hasMany(model: string): void;
+
+export type ModelInstance<T = AnyAttrs> = ModelInstanceShared<T> & ModelInstanceAttrs<T>;
+
+export class ModelClass {
+    extend(attrs: unknown): ModelClass;
+}
+
+export const Model: ModelClass;
 
 export interface Collection<T> {
     models: Array<ModelInstance<T>>;
     length: number;
     modelName: string;
-    firstObject: ModelInstance<T>;
     update<K extends keyof T>(key: K, val: T[K]): void;
     update<K extends keyof T>(attrs: { [key: K]: T[K] }): void;
     save(): void;
@@ -78,7 +85,7 @@ export interface Collection<T> {
     filter(filterFn: (model: ModelInstance<T>) => boolean): Collection<T>;
 }
 
-interface ModelClass<T = AnyAttrs> {
+interface SchemaModelCollection<T = AnyAttrs> {
     new(attrs: Partial<ModelAttrs<T>>): ModelInstance<T>;
     create(attrs: Partial<ModelAttrs<T>>): ModelInstance<T>;
     update(attrs: Partial<ModelAttrs<T>>): ModelInstance<T>;
@@ -90,10 +97,10 @@ interface ModelClass<T = AnyAttrs> {
 }
 
 export type Schema = {
-    [modelName in keyof MirageSchemaRegistry]: ModelClass<MirageSchemaRegistry[modelName]>;
+    [modelName in keyof MirageSchemaRegistry]: SchemaModelCollection<MirageSchemaRegistry[modelName]>;
 } & {
     db: Database;
-    [modelName: string]: ModelClass;
+    [modelName: string]: SchemaModelCollection;
 };
 
 export declare class Response {
@@ -114,17 +121,17 @@ export interface Request {
 
 export type NormalizedRequestAttrs<T> = {
     [P in keyof T]:
-        T[P] extends DS.Model & DS.PromiseObject<DS.Model> ? never :
-        T[P] extends DS.Model ? never :
-        T[P] extends DS.PromiseManyArray<DS.Model> ? never :
-        T[P] extends DS.Model[] & DS.PromiseManyArray<DS.Model> ? never :
-        T[P] extends DS.Model[] ? never :
+        T[P] extends EmberDataModel & AsyncBelongsTo<EmberDataModel> ? never :
+        T[P] extends EmberDataModel ? never :
+        T[P] extends AsyncHasMany<EmberDataModel> ? never :
+        T[P] extends EmberDataModel[] & AsyncHasMany<EmberDataModel> ? never :
+        T[P] extends EmberDataModel[] ? never :
         T[P];
 };
 
 export interface HandlerContext {
     request: Request;
-    serialize(modelOrCollection: ModelInstance | ModelInstance[] | ModelClass, serializerName?: string): any;
+    serialize(modelOrCollection: ModelInstance | ModelInstance[] | SchemaModelCollection, serializerName?: string): any;
     normalizedRequestAttrs<M extends keyof ModelRegistry>(model: M): NormalizedRequestAttrs<ModelRegistry[M]>;
 }
 interface HandlerObject {
@@ -136,7 +143,7 @@ interface HandlerOptions {
 }
 export type HandlerFunction = (this: HandlerContext, schema: Schema, request: Request) => any;
 
-/* tslint:disable unified-signatures */
+/* eslint-disable  @typescript-eslint/unified-signatures */
 function handlerDefinition(path: string, options?: HandlerOptions): void;
 function handlerDefinition(
     path: string,
@@ -165,19 +172,19 @@ function handlerDefinition(
     responseCode: number,
     options?: HandlerOptions,
 ): void;
-/* tslint:enable unified-signatures */
+/* eslint-enable  @typescript-eslint/unified-signatures */
 
 export type resourceAction = 'index' | 'show' | 'create' | 'update' | 'delete';
 
 export type ModelAttrs<T> = {
     [P in keyof T]:
         P extends 'id' ? string | number :
-        T[P] extends DS.Model & DS.PromiseObject<infer M> ? ModelInstance<M> :
-        T[P] extends DS.Model ? ModelInstance<T[P]> :
-        T[P] extends DS.PromiseManyArray<infer M> ? Array<ModelInstance<M>> :
-        T[P] extends DS.Model[] & DS.PromiseManyArray<infer M> ? Array<ModelInstance<M>> :
-        T[P] extends DS.Model[] ? Array<ModelInstance<T[P]>> :
-        T[P] extends Date ? Date | string :
+        T[P] extends EmberDataModel & AsyncBelongsTo<infer M> ? ModelInstance<M> :
+        T[P] extends EmberDataModel ? ModelInstance<T[P]> :
+        T[P] extends AsyncHasMany<infer M> ? Array<ModelInstance<M>> :
+        T[P] extends EmberDataModel[] & AsyncHasMany<infer M> ? Array<ModelInstance<M>> :
+        T[P] extends EmberDataModel[] ? Array<ModelInstance<T[P]>> :
+        T[P] extends EmberDataModel ? Date | string :
         T[P];
 };
 
@@ -253,9 +260,10 @@ export function trait<
 // function association(...traits: string[], overrides?: { [key: string]: any }): any;
 
 export function association(...args: any[]): any;
+export { belongsTo } from 'miragejs';
 
 export type FactoryAttrs<T> = {
-    [P in keyof T]?: T[P] | ((index: number) => T[P]);
+    [P in keyof T]?: T[P] | BelongsTo | ((index: number) => T[P]);
 } & {
     afterCreate?(newObj: ModelInstance<T>, server: Server): void;
 };

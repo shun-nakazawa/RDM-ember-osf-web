@@ -1,6 +1,7 @@
 import Service from '@ember/service';
-import { click, fillIn, render, triggerKeyEvent } from '@ember/test-helpers';
+import { click, render } from '@ember/test-helpers';
 import { hbs } from 'ember-cli-htmlbars';
+import { setupMirage } from 'ember-cli-mirage/test-support';
 import config from 'ember-get-config';
 import { setupIntl, t } from 'ember-intl/test-support';
 import { percySnapshot } from 'ember-percy';
@@ -23,8 +24,9 @@ const statusMessagesStub = Service.extend({
 });
 
 const analyticsStub = Service.extend({
+    // eslint-disable-next-line ember/no-actions-hash
     actions: {
-        // tslint:disable-next-line:no-empty
+        // eslint-disable-next-line no-empty,@typescript-eslint/no-empty-function
         click() { },
     },
 });
@@ -40,6 +42,7 @@ const currentUserStub = Service.extend({
     },
 
     async checkShowTosConsentBanner() { /* stub */ },
+    async logout() { /* stub */ },
 });
 
 const featuresStub = Service.extend({
@@ -65,9 +68,9 @@ function visibleText(selector: string) {
     return $(`${selector} *:not(:has(*)):visible`).text().replace(/\s+/g, ' ').trim();
 }
 
-/* tslint:disable:only-arrow-functions */
 module('Registries | Integration | Component | registries-navbar', hooks => {
     setupEngineRenderingTest(hooks, 'registries');
+    setupMirage(hooks);
     setupIntl(hooks);
 
     hooks.beforeEach(function(this: TestContext) {
@@ -106,6 +109,11 @@ module('Registries | Integration | Component | registries-navbar', hooks => {
 
         await render(hbs`<RegistriesNavbar />`);
         await percySnapshot(assert);
+
+        // Don't show provider name unless provider is branded
+        assert.dom('[data-test-brand-link]').doesNotExist('Branded provider name does not exists');
+
+        assert.equal(visibleText('[data-test-service]'), `${t('general.OSF')}${t('general.services.registries')}`);
 
         assert.equal(visibleText('[data-test-service]'),
             `${t('general.OSF', { title: pageName })}${t('general.services.registries')}`);
@@ -164,6 +172,9 @@ module('Registries | Integration | Component | registries-navbar', hooks => {
         assert.equal(visibleText('[data-test-service]'),
             `${t('general.OSF', { title: pageName })}${t('general.services.registries')}`);
         assert.dom('[data-test-search-bar]').isVisible('Search bar is visible');
+        assert.dom('[data-test-service]').doesNotContainText(
+            `${t('general.OSF')}${t('general.services.registries')}`, 'Navbar text hidden on tablet view',
+        );
         assert.dom('[data-test-search-bar-mobile]').isNotVisible('Mobile search bar is not visible on tablet');
 
         assert.dom('a[data-test-help]').isVisible('Help button is visible');
@@ -218,7 +229,6 @@ module('Registries | Integration | Component | registries-navbar', hooks => {
 
         assert.dom('a[data-test-help-mobile]').isVisible();
         assert.dom('a[data-test-donate-mobile]').isVisible();
-        assert.dom('[data-test-search-bar]').isNotVisible('Search bar hidden');
     });
 
     test('mobile layout (logged out)', async function(assert) {
@@ -254,36 +264,6 @@ module('Registries | Integration | Component | registries-navbar', hooks => {
         assert.dom('a[role="button"][data-test-login]').isNotVisible('Login button not is visible');
     });
 
-    test('onSearch', async function(assert) {
-        setBreakpoint('desktop');
-
-        this.set('onSearch', sinon.stub());
-
-        await render(hbs`<RegistriesNavbar @onSearch={{this.onSearch}} />`);
-
-        await fillIn('[data-test-search-bar] input', 'This is my query');
-        await triggerKeyEvent('[data-test-search-bar] input', 'keyup', 13);
-        await percySnapshot(assert);
-
-        assert.ok(this.get('onSearch').calledWith('This is my query'));
-    });
-
-    test('onSearch (Mobile)', async function(assert) {
-        setBreakpoint('mobile');
-
-        this.set('onSearch', sinon.stub());
-
-        await render(hbs`<RegistriesNavbar @onSearch={{this.onSearch}} />`);
-
-        assert.dom('[data-test-search-bar-mobile]').isVisible();
-
-        await fillIn('[data-test-search-bar-mobile] input', 'This is my query');
-        await triggerKeyEvent('[data-test-search-bar-mobile] input', 'keyup', 13);
-        await percySnapshot(assert);
-
-        assert.ok(this.get('onSearch').calledWith('This is my query'));
-    });
-
     test('service list', async assert => {
         await render(hbs`<RegistriesNavbar />`);
 
@@ -307,4 +287,32 @@ module('Registries | Integration | Component | registries-navbar', hooks => {
 
         assert.dom('[data-test-auth-dropdown] ul').isVisible();
     });
+
+    test('branded desktop layout', async function(assert) {
+        const brand = server.create('brand');
+        const brandedProvider = server.create('registration-provider', { name: 'ISPOR', brand });
+
+        this.set('provider', brandedProvider);
+        setBreakpoint('desktop');
+
+        await render(hbs`<RegistriesNavbar @provider={{this.provider}} />`);
+        await percySnapshot(assert);
+
+        assert.dom('[data-test-brand-link]').exists('Branded provider name exists');
+        assert.dom('[data-test-brand-link]').hasText(brandedProvider.name, 'Branded provider name is correct');
+    });
+
+    test('branded name does not show up on mobile layout', async function(assert) {
+        const brand = server.create('brand');
+        const brandedProvider = server.create('registration-provider', { name: 'ISPOR', brand });
+
+        this.set('provider', brandedProvider);
+        setBreakpoint('mobile');
+
+        await render(hbs`<RegistriesNavbar @provider={{this.provider}} />`);
+        await percySnapshot(assert);
+
+        assert.dom('[data-test-brand-link]').doesNotExist('Branded provider name does not exists');
+    });
 });
+

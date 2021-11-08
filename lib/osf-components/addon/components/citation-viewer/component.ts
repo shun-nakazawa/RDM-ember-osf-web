@@ -1,8 +1,8 @@
+import Store from '@ember-data/store';
 import Component from '@ember/component';
 import { inject as service } from '@ember/service';
-import { all, timeout } from 'ember-concurrency';
-import { task } from 'ember-concurrency-decorators';
-import DS from 'ember-data';
+import { waitFor } from '@ember/test-waiters';
+import { all, restartableTask, task, timeout } from 'ember-concurrency';
 
 import { layout } from 'ember-osf-web/decorators/component';
 import CitationStyle from 'ember-osf-web/models/citation-style';
@@ -47,14 +47,27 @@ export default class CitationViewer extends Component {
     citable!: Node | Preprint;
 
     // Private properties
-    @service store!: DS.Store;
+    @service store!: Store;
     @service currentUser!: CurrentUser;
 
     selectedCitationStyle?: CitationStyle;
 
+    @restartableTask
+    @waitFor
+    async renderCitation(citationStyle: CitationStyle) {
+        this.set('selectedCitationStyle', citationStyle);
+
+        const response: SingleResourceDocument = await this.currentUser.authenticatedAJAX({
+            url: citationUrl(this.citable, citationStyle.id),
+        });
+        const citationString = response.data.attributes!.citation;
+        return typeof citationString === 'string' ? fixSpecialChars(citationString) : citationString;
+    }
+
     @task({ on: 'init' })
-    loadDefaultCitations = task(function *(this: CitationViewer) {
-        const responses: SingleResourceDocument[] = yield all(
+    @waitFor
+    async loadDefaultCitations() {
+        const responses: SingleResourceDocument[] = await all(
             defaultCitations.map(
                 c => this.currentUser.authenticatedAJAX({ url: citationUrl(this.citable, c.id) }),
             ),
@@ -65,26 +78,17 @@ export default class CitationViewer extends Component {
                 ? fixSpecialChars(r.data.attributes!.citation)
                 : r.data.attributes!.citation,
         }));
-    });
+    }
 
-    @task({ restartable: true })
-    searchCitationStyles = task(function *(this: CitationViewer, query: string) {
-        yield timeout(1000); // debounce
+    @restartableTask
+    @waitFor
+    async searchCitationStyles(query: string) {
+        await timeout(1000); // debounce
 
-        return yield this.store.query('citation-style', {
+        const citationSearchResults = await this.store.query('citation-style', {
             'filter[title,short_title]': query,
             'page[size]': 100,
         });
-    });
-
-    @task({ restartable: true })
-    renderCitation = task(function *(this: CitationViewer, citationStyle: CitationStyle) {
-        this.set('selectedCitationStyle', citationStyle);
-
-        const response: SingleResourceDocument = yield this.currentUser.authenticatedAJAX({
-            url: citationUrl(this.citable, citationStyle.id),
-        });
-        const citationString = response.data.attributes!.citation;
-        return typeof citationString === 'string' ? fixSpecialChars(citationString) : citationString;
-    });
+        return citationSearchResults;
+    }
 }

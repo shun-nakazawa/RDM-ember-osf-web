@@ -5,6 +5,7 @@
         @fixedWidth={{true}}
     />
     <Input
+        data-test-subject-searchbox
         @name='search'
         @type='text'
         @value={{this.userQuery}}
@@ -15,6 +16,7 @@
 
 {{#if (or this.isLoading this.searchResults)}}
     <ol
+        class='{{if this.isLoading 'BlurredInert'}}'
         local-class='SearchResults'
         inert={{this.isLoading}}
     >

@@ -1,5 +1,5 @@
 import { fillIn, visit } from '@ember/test-helpers';
-import setupMirage from 'ember-cli-mirage/test-support/setup-mirage';
+import { setupMirage } from 'ember-cli-mirage/test-support';
 import { module, test } from 'qunit';
 
 import { click, setupOSFApplicationTest } from 'ember-osf-web/tests/helpers';
@@ -53,6 +53,6 @@ module('Acceptance | settings', hooks => {
         assertionsEnabledNotConfirmed(assert, 'After deactivation');
         await click('[data-test-verify-button]');
         assert.dom('[data-test-verification-code-field] .help-block')
-            .containsText('This field must be a number.');
+            .containsText('Verification code is invalid.', 'End test');
     });
 });

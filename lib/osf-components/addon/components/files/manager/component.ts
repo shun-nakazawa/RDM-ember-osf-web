@@ -1,19 +1,23 @@
+import Store from '@ember-data/store';
+import { AsyncHasMany } from '@ember-data/model';
 import { tagName } from '@ember-decorators/component';
 import Component from '@ember/component';
-import { assert } from '@ember/debug';
 import { action, computed } from '@ember/object';
 import { alias, or } from '@ember/object/computed';
 import { inject as service } from '@ember/service';
 import { camelize } from '@ember/string';
-import { task } from 'ember-concurrency-decorators';
-import DS from 'ember-data';
+import { waitFor } from '@ember/test-waiters';
+import { enqueueTask, restartableTask, task } from 'ember-concurrency';
+import { taskFor } from 'ember-concurrency-ts';
 import Intl from 'ember-intl/services/intl';
 import Toast from 'ember-toastr/services/toast';
 
 import { layout } from 'ember-osf-web/decorators/component';
+import DraftNode from 'ember-osf-web/models/draft-node';
 import File from 'ember-osf-web/models/file';
 import FileProvider from 'ember-osf-web/models/file-provider';
 import Node from 'ember-osf-web/models/node';
+import captureException, { getApiErrorMessage } from 'ember-osf-web/utils/capture-exception';
 import { PaginatedMeta } from 'osf-api';
 
 import template from './template';
@@ -33,11 +37,11 @@ export interface FilesManager {
     goToFolder: (item: File) => void;
     goToParentFolder: (item: File) => void;
     onSelectFile?: (item: File) => void;
-    addFile: (id: string) => void;
+    addFile: (id: string) => Promise<void>;
     sortItems: (sort: string) => void;
 }
 
-interface PromiseManyArrayWithMeta extends DS.PromiseManyArray<File> {
+interface PromiseManyArrayWithMeta extends AsyncHasMany<File> {
     meta: PaginatedMeta;
 }
 
@@ -47,22 +51,23 @@ type SortKey = 'date_modified' | '-date_modified' | 'name' | '-name';
 @layout(template)
 export default class FilesManagerComponent extends Component {
     @service intl!: Intl;
-    @service store!: DS.Store;
+    @service store!: Store;
     @service toast!: Toast;
 
-    node!: Node;
+    node!: Node | DraftNode;
 
     onAddFile?: (file: File) => void;
+    onDeleteFile?: (file: File, options?: { callback?: () => void }) => void;
 
     fileProvider!: FileProvider;
     currentFolder!: File;
     lastUploaded: File[] = []; // Files uploaded since last sort.
     rootFolder!: File;
+    canEdit!: boolean;
     pageSize = 10;
     sort: SortKey = 'date_modified';
     page = 1;
 
-    @alias('node.userHasAdminPermission') canEdit!: boolean;
     @alias('getRootItems.isRunning') loading!: boolean;
     @alias('loadMore.isRunning') loadingMore!: boolean;
     @or(
@@ -70,7 +75,7 @@ export default class FilesManagerComponent extends Component {
         'getCurrentFolderItems.isRunning',
     ) loadingFolderItems!: boolean;
 
-    @computed('currentFolder.files.[]', 'page')
+    @computed('currentFolder.files.[]', 'page', 'pageSize')
     get maxFilesDisplayed() {
         if (this.currentFolder) {
             return this.page * this.pageSize;
@@ -125,55 +130,60 @@ export default class FilesManagerComponent extends Component {
         return false;
     }
 
-    @task({ restartable: true, on: 'didReceiveAttrs' })
-    getRootItems = task(function *(this: FilesManagerComponent) {
-        assert('@node is required', Boolean(this.node));
+    @restartableTask({ on: 'didReceiveAttrs' })
+    @waitFor
+    async getRootItems() {
+        if (this.node) {
+            const fileProviders = await this.node.files;
+            const fileProvider = fileProviders.findBy('name', 'osfstorage') as FileProvider;
+            const rootFolder = await fileProvider.rootFolder;
 
-        const fileProviders = yield this.node.files;
-        const fileProvider = fileProviders.findBy('name', 'osfstorage') as FileProvider;
-        const rootFolder = yield fileProvider.rootFolder;
+            await rootFolder.files;
 
-        yield rootFolder.files;
-
-        this.setProperties({
-            fileProvider,
-            rootFolder,
-            currentFolder: rootFolder,
-        });
-    });
+            this.setProperties({
+                fileProvider,
+                rootFolder,
+                currentFolder: rootFolder,
+            });
+        }
+    }
 
     @task
-    loadMore = task(function *(this: FilesManagerComponent) {
-        yield this.currentFolder.queryHasMany('files', {
+    @waitFor
+    async loadMore() {
+        await this.currentFolder.queryHasMany('files', {
             page: this.page + 1,
             pageSize: this.pageSize,
             sort: this.sort,
         });
 
         this.incrementProperty('page');
-    });
+    }
 
     @task
-    getCurrentFolderItems = task(function *(this: FilesManagerComponent, targetFolder: File) {
+    @waitFor
+    async getCurrentFolderItems(targetFolder: File) {
         this.set('currentFolder', targetFolder);
 
-        yield this.currentFolder.files;
-    });
+        await this.currentFolder.files;
+    }
 
     @task
-    sortFolderItems = task(function *(this: FilesManagerComponent) {
-        yield this.currentFolder.queryHasMany('files', {
+    @waitFor
+    async sortFolderItems() {
+        await this.currentFolder.queryHasMany('files', {
             pageSize: this.pageSize,
             sort: this.sort,
             page: 1,
         });
         this.setProperties({ lastUploaded: [] });
-    });
+    }
 
     @task
-    addFile = task(function *(this: FilesManagerComponent, id: string) {
+    @waitFor
+    async addFile(id: string) {
         const duplicate = this.currentFolder.files.findBy('id', id);
-        const file = yield this.store
+        const file = await this.store
             .findRecord(
                 'file',
                 id,
@@ -196,7 +206,30 @@ export default class FilesManagerComponent extends Component {
         if (this.onAddFile) {
             this.onAddFile(file);
         }
-    });
+    }
+
+    @enqueueTask
+    @waitFor
+    async deleteFileTask(file: File) {
+        try {
+            await file.delete();
+
+            if (this.onDeleteFile) {
+                this.onDeleteFile(
+                    file,
+                    { callback: file.isFolder ? this.goToParentFolder.bind(this, file) : null },
+                );
+            }
+            this.currentFolder.files.removeObject(file);
+            file.unloadRecord();
+            this.toast.success(this.intl.t('osf-components.files-widget.delete_success', { filename: file.itemName }));
+        } catch (e) {
+            const errorMessage = this.intl
+                .t('osf-components.files-widget.delete_failed', { filename: file.itemName });
+            this.toast.error(getApiErrorMessage(e), errorMessage);
+            captureException(e, { errorMessage });
+        }
+    }
 
     @action
     goToParentFolder(currentFolder: File) {
@@ -210,7 +243,7 @@ export default class FilesManagerComponent extends Component {
         const folderItems = targetFolder.hasMany('files').value();
 
         if (folderItems === null) {
-            this.getCurrentFolderItems.perform(targetFolder);
+            taskFor(this.getCurrentFolderItems).perform(targetFolder);
         } else {
             this.setProperties({ currentFolder: targetFolder });
         }
@@ -220,6 +253,6 @@ export default class FilesManagerComponent extends Component {
     sortItems(sort: string) {
         this.setProperties({ sort });
 
-        this.sortFolderItems.perform();
+        taskFor(this.sortFolderItems).perform();
     }
 }

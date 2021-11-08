@@ -2,13 +2,12 @@ import EmberArray, { A } from '@ember/array';
 import Controller from '@ember/controller';
 import { action } from '@ember/object';
 import { inject as service, Registry as Services } from '@ember/service';
-import { task } from 'ember-concurrency-decorators';
-import Store from 'ember-data/store';
-import RSVP from 'rsvp';
+import { waitFor } from '@ember/test-waiters';
+import { task } from 'ember-concurrency';
+import Store from '@ember-data/store';
 
 import Analytics from 'ember-osf-web/services/analytics';
 import config from 'registries/config/environment';
-import { SearchOptions, SearchOrder, SearchResults } from 'registries/services/search';
 import ShareSearch, { ShareRegistration } from 'registries/services/share-search';
 
 export default class Index extends Controller {
@@ -21,21 +20,17 @@ export default class Index extends Controller {
     searchableRegistrations = 0;
 
     @task({ on: 'init' })
-    getRecentRegistrations = task(function *(this: Index) {
-        const [recentResults, totalResults]: Array<SearchResults<ShareRegistration>> = yield RSVP.all([
-            this.shareSearch.registrations(new SearchOptions({
-                order: new SearchOrder({ display: '', ascending: false, key: 'date_updated' }),
-                query: config.indexPageRegistrationsQuery,
-                size: 5,
-            })),
-            this.shareSearch.registrations(new SearchOptions({
-                size: 0,
-            })),
-            this.store.findAll('registration-schema'),
-        ]);
-        this.set('recentRegistrations', recentResults.results);
-        this.set('searchableRegistrations', totalResults.total);
-    });
+    @waitFor
+    async getRecentRegistrations() {
+        const recentRegistrations = await this.store.query('registration', {
+            filter: {
+                id: config.indexPageRegistrationIds.join(','),
+            },
+            sort: '-date_modified',
+            embed: 'bibliographic_contributors',
+        });
+        this.setProperties({ recentRegistrations });
+    }
 
     @action
     onSearch(query: string) {

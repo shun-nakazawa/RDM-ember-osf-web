@@ -1,8 +1,8 @@
 import { click as _click, settled, Target, visit as _visit } from '@ember/test-helpers';
 import { getContext } from '@ember/test-helpers/setup-context';
-import { faker } from 'ember-cli-mirage';
 import config from 'ember-get-config';
 import { setupApplicationTest } from 'ember-qunit';
+import faker from 'faker';
 
 const {
     OSF: {
@@ -57,6 +57,7 @@ export async function click(target: Target) {
 // https://github.com/emberjs/ember-test-helpers/blob/47b094d516ec8c320879ea5d0eb1b4944cd136a4/addon-test-support/%40ember/test-helpers/setup-application-context.js#L52
 export function currentURL() {
     const { owner } = (getContext() as any);
+    // eslint-disable-next-line ember/no-private-routing-service
     const router = owner.lookup('router:main');
     return router.get('location').getURL();
 }

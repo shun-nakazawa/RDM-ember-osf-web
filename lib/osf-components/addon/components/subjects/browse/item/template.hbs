@@ -1,10 +1,11 @@
 <li
+    class='{{if this.isPlaceholder 'BlurredInert'}}'
     local-class='Item'
     inert={{this.isPlaceholder}}
     ...attributes
 >
     <label
-        data-test-subject={{@singleSubjectManager.subject.id}}
+        data-test-subject-browse-label={{@singleSubjectManager.subject.id}}
         local-class='ItemLabel {{if @singleSubjectManager.hasSelectedChildren 'with-selected-child'}}'
     >
         <Input
@@ -19,7 +20,7 @@
         {{/if}}
 
         {{#if @singleSubjectManager.numChildren}}
-            <OsfButton
+            <BsButton
                 data-test-expand-children={{@singleSubjectManager.subject.id}}
                 local-class='ExpandButton'
                 role='button'
@@ -31,7 +32,7 @@
                     @icon='chevron-{{if this.shouldShowChildren 'up' 'down'}}'
                     @fixedWidth={{true}}
                 />
-            </OsfButton>
+            </BsButton>
         {{/if}}
     </label>
 

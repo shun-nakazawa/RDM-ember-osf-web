@@ -1,7 +1,9 @@
 import { tagName } from '@ember-decorators/component';
 import Component from '@ember/component';
 import { inject as service } from '@ember/service';
-import { task } from 'ember-concurrency-decorators';
+import { waitFor } from '@ember/test-waiters';
+import { task } from 'ember-concurrency';
+import { taskFor } from 'ember-concurrency-ts';
 import config from 'ember-get-config';
 import Intl from 'ember-intl/services/intl';
 import Toast from 'ember-toastr/services/toast';
@@ -19,28 +21,29 @@ export default class ConnectedIdentities extends Component {
     reloadIdentitiesList!: (page?: number) => void; // bound by paginated-list
 
     @task
-    removeIdentityTask = task(function *(this: ConnectedIdentities, identity: ExternalIdentity) {
+    @waitFor
+    async removeIdentityTask(identity: ExternalIdentity) {
         if (!identity) {
             return undefined;
         }
 
         try {
-            yield identity.destroyRecord();
+            await identity.destroyRecord();
         } catch (e) {
             const errorMessage = this.intl.t(
                 'settings.account.connected_identities.remove_fail',
                 { supportEmail, htmlSafe: true },
             );
-            captureException(e, { errorMessage });
-            this.toast.error(getApiErrorMessage(e), errorMessage);
+            captureException(e, { errorMessage: errorMessage.toString() });
+            this.toast.error(getApiErrorMessage(e), errorMessage as string);
             return false;
         }
         this.reloadIdentitiesList();
         this.toast.success(this.intl.t('settings.account.connected_identities.remove_success'));
         return true;
-    });
+    }
 
     removeIdentity(identity: ExternalIdentity) {
-        this.removeIdentityTask.perform(identity);
+        taskFor(this.removeIdentityTask).perform(identity);
     }
 }

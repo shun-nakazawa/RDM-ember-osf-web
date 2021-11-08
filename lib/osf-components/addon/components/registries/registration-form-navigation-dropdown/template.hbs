@@ -1,28 +1,28 @@
 {{assert 'Registries::RegistrationFormNavigationDropdown requires schemablocks' @schemaBlocks}}
 <ResponsiveDropdown local-class='Dropdown' @renderInPlace={{true}} as |dd|>
-    {{#dd.trigger local-class='MenuTrigger'}}
-        <OsfButton
-            data-analytics-name='Expand'
-            data-test-toggle-anchor-nav-button @type='link'
-            local-class='ToggleNav__button'
-            aria-label={{t 'registries.drafts.draft.review.toggle_dropdown'}}
-        >
+    <dd.trigger
+        local-class='MenuTrigger'
+        data-test-toggle-anchor-nav-button
+        data-analytics-name='Expand'
+        aria-label={{t 'registries.drafts.draft.review.toggle_dropdown'}}
+    >
+        <div local-class='ToggleNav__button'>
             <FaIcon @icon='bars' />
-        </OsfButton>
-    {{/dd.trigger}}
-    {{#dd.content}}
+        </div>
+    </dd.trigger>
+    <dd.content>
         <nav
             data-analytics-scope='Form navigation menu'
             local-class='NavigationMenu'
             aria-labelledby='form-navigation-menu'
         >
-            <h2 
+            <h2
                 local-class='Header'
                 id='form-navigation-menu'
                 data-test-anchor-nav-title
             >
                 <div local-class='HeaderText'>{{t 'registries.overview.contents'}}</div>
-                <OsfButton
+                <BsButton
                     data-analytics-name='Collapse'
                     data-test-toggle-anchor-nav-button
                     @onClick={{action dd.close}}
@@ -30,7 +30,7 @@
                     local-class= 'ToggleNav__button'
                 >
                     <FaIcon @icon='times' />
-                </OsfButton>
+                </BsButton>
             </h2>
             <ol local-class='Anchors' data-test-form-block-anchors>
                 {{#if this.showMetadata}}
@@ -73,5 +73,5 @@
                 {{/each}}
             </ol>
         </nav>
-    {{/dd.content}}
+    </dd.content>
 </ResponsiveDropdown>

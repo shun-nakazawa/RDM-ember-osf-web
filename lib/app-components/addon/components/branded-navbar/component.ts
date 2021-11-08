@@ -22,11 +22,12 @@ export default class BrandedNavbar extends Component {
     @service session!: Session;
     @service theme!: Theme;
 
-    brandRoute: string = this.brandRoute;
-    objectType: ObjectType = this.objectType;
-    signupUrl: string = this.signupUrl;
-    translateKey: string = this.translateKey;
-    showNavLinks: boolean = false;
+    brandRoute!: string;
+    objectType!: ObjectType;
+    signupUrl!: string;
+    translateKey!: string;
+    showNavLinks = false;
+    campaign = `${this.theme.id}-collections`;
 
     myProjectsUrl = serviceLinks.myProjects;
 

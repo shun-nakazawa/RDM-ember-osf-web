@@ -1,8 +1,10 @@
 import { assert } from '@ember/debug';
-import { computed, set } from '@ember/object';
-import Changeset from 'ember-changeset';
+import { set } from '@ember/object';
+import { dependentKeyCompat } from '@ember/object/compat';
+import { Changeset } from 'ember-changeset';
 import lookupValidator from 'ember-changeset-validations';
-import { ChangesetDef } from 'ember-changeset/types';
+import { BufferedChangeset } from 'ember-changeset/types';
+import DraftNode from 'ember-osf-web/models/draft-node';
 import NodeModel from 'ember-osf-web/models/node';
 import {
     buildValidation,
@@ -13,12 +15,16 @@ import {
 import { RegistrationResponse } from 'ember-osf-web/packages/registration-schema/registration-response';
 
 export class PageManager {
-    changeset?: ChangesetDef;
+    changeset?: BufferedChangeset;
     schemaBlockGroups?: SchemaBlockGroup[];
     pageHeadingText?: string;
     isVisited?: boolean;
 
-    constructor(pageSchemaBlocks: SchemaBlock[], registrationResponses: RegistrationResponse, node?: NodeModel) {
+    constructor(
+        pageSchemaBlocks: SchemaBlock[],
+        registrationResponses: RegistrationResponse,
+        node?: NodeModel | DraftNode,
+    ) {
         this.schemaBlockGroups = getSchemaBlockGroups(pageSchemaBlocks);
         if (this.schemaBlockGroups) {
             this.pageHeadingText = this.schemaBlockGroups[0].labelBlock!.displayText!;
@@ -28,11 +34,11 @@ export class PageManager {
             );
 
             const validations = buildValidation(this.schemaBlockGroups, node);
-            this.changeset = new Changeset(
+            this.changeset = Changeset(
                 registrationResponses,
                 lookupValidator(validations),
                 validations,
-            ) as ChangesetDef;
+            ) as BufferedChangeset;
 
             if (this.isVisited) {
                 this.changeset.validate();
@@ -42,18 +48,10 @@ export class PageManager {
         }
     }
 
-    @computed('changeset.isValid')
+    @dependentKeyCompat
     get pageIsValid() {
         if (this.changeset) {
-            return this.changeset.get('isValid');
-        }
-        return false;
-    }
-
-    @computed('changeset.isInvalid')
-    get pageIsInvalid() {
-        if (this.changeset) {
-            return this.changeset.get('isInvalid');
+            return this.changeset.isValid;
         }
         return false;
     }

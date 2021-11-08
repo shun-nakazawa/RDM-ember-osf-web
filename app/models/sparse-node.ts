@@ -1,4 +1,4 @@
-import DS from 'ember-data';
+import { attr, belongsTo, hasMany, AsyncBelongsTo, AsyncHasMany } from '@ember-data/model';
 
 import { computed } from '@ember/object';
 import { alias } from '@ember/object/computed';
@@ -6,8 +6,6 @@ import ContributorModel from 'ember-osf-web/models/contributor';
 import NodeModel, { NodeCategory } from 'ember-osf-web/models/node';
 import UserModel from 'ember-osf-web/models/user';
 import OsfModel, { Permission } from './osf-model';
-
-const { attr, belongsTo, hasMany } = DS;
 
 export default class SparseNodeModel extends OsfModel {
     @attr('fixstring') title!: string;
@@ -25,27 +23,27 @@ export default class SparseNodeModel extends OsfModel {
     @attr('number') quotaThreshold!: number;
 
     @hasMany('node', { inverse: 'parent' })
-    children!: DS.PromiseManyArray<NodeModel>;
+    children!: AsyncHasMany<NodeModel>;
 
     @hasMany('contributor', { inverse: 'node' })
-    contributors!: DS.PromiseManyArray<ContributorModel>;
+    contributors!: AsyncHasMany<ContributorModel>;
 
     @hasMany('contributor', { inverse: null })
-    bibliographicContributors!: DS.PromiseManyArray<ContributorModel>;
+    bibliographicContributors!: AsyncHasMany<ContributorModel>;
 
     @belongsTo('user', { inverse: null })
     creator!: DS.PromiseObject<UserModel> & UserModel;
 
     @belongsTo('node', { inverse: 'children' })
-    parent!: DS.PromiseObject<NodeModel> & NodeModel;
+    parent!: AsyncBelongsTo<NodeModel> & NodeModel;
 
     @belongsTo('node', { inverse: null })
-    root!: DS.PromiseObject<NodeModel> & NodeModel;
+    root!: AsyncBelongsTo<NodeModel> & NodeModel;
 
     @belongsTo('node', { inverse: null })
-    detail!: DS.PromiseObject<NodeModel> & NodeModel;
+    detail!: AsyncBelongsTo<NodeModel> & NodeModel;
 
-    @computed('root')
+    @computed('id', 'root')
     get isRoot() {
         const rootId = (this as SparseNodeModel).belongsTo('root').id();
         return !rootId || rootId === this.id;

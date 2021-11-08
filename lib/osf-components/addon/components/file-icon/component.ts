@@ -5,7 +5,6 @@ import { localClassNames } from 'ember-css-modules';
 
 import { layout } from 'ember-osf-web/decorators/component';
 import File from 'ember-osf-web/models/file';
-import defaultTo from 'ember-osf-web/utils/default-to';
 import styles from './styles';
 import template from './template';
 
@@ -80,7 +79,7 @@ const iconForType = {
         'xltm',
         'csv',
     ],
-    text: [
+    alt: [
         'txt',
         'md',
         'rtf',
@@ -99,7 +98,7 @@ function iconFromName(name: string): string {
     const type = match ? match[0] : '';
     const icon = typeIcons.get(type);
 
-    return `file${icon ? `-${icon}` : ''}-o`;
+    return `file${icon ? `-${icon}` : ''}`;
 }
 
 /**
@@ -121,18 +120,14 @@ function iconFromName(name: string): string {
 @tagName('span')
 @localClassNames('FileIcon')
 export default class FileIcon extends Component {
-    item: File = this.item;
+    // Required arguments
+    item!: File;
 
-    @computed('item', 'item.expanded')
+    @computed('item.{expanded,isFolder,isNode,isProvider,name,itemName}')
     get iconName(): string {
         // TODO: More icons!
-
         if (this.item.isFolder) {
             return 'folder';
-        }
-
-        if (this.item.name) {
-            return iconFromName(this.item.name);
         }
 
         if (this.item.isNode) {
@@ -142,9 +137,13 @@ export default class FileIcon extends Component {
 
         if (this.item.isProvider) {
             // TODO provider-specific icons
-            return 'hdd-o';
+            return 'hdd';
         }
 
-        return iconFromName(defaultTo(this.item.itemName, ''));
+        if (this.item.name) {
+            return iconFromName(this.item.name);
+        }
+
+        return iconFromName(this.item.itemName ?? '');
     }
 }

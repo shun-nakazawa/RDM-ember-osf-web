@@ -5,18 +5,18 @@
     <dd.trigger
         data-analytics-name='Expand state dropdown'
         data-test-state-button
-        @class={{local-class 'StateText'}}
+        local-class='StateText'
     >
         {{this.stateText.buttonText}}
         <FaIcon @icon={{if @isOpen 'caret-up' 'caret-down'}} @fixedWidth={{true}} />
     </dd.trigger>
     <dd.content
         data-test-state-description
-        @class={{local-class 'States'}}
+        local-class='States'
     >
         {{#if this.stateText}}
             <div local-class='DescriptionContainer'>
-                <FaIcon data-test-state-icon @icon={{this.stateIcon}} @size='4' />
+                <FaIcon data-test-state-icon @icon={{this.stateIcon}} @size='4x' />
                 <div local-class='DescriptionText'>
                     <h4 data-test-state-description-short>{{this.stateText.short}}</h4>
                     <p
@@ -31,9 +31,10 @@
         {{/if}}
         {{#unless this.shouldHideAdminActions}}
             <div data-test-state-admin-actions local-class='AdminActions'>
-                {{#if (eq this.registration.state this.public)}}
+                {{#if (eq this.registration.reviewsState 'accepted')}}
                     <RegistriesStates::IsPublic @registration={{@registration}} @closeDropdown={{dd.close}} />
-                {{else}}
+                {{/if}}
+                {{#if (eq this.registration.reviewsState 'embargo')}}
                     <RegistriesStates::IsEmbargoed @registration={{@registration}} @closeDropdown={{dd.close}} />
                 {{/if}}
             </div>
