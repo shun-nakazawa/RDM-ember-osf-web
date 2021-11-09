@@ -56,7 +56,8 @@ export default class DraftRegistrationRoute extends Route {
 
     model(params: { id: string }): DraftRouteModel {
         const { id: draftId } = params;
-        const draftRegistrationTask = taskFor(this.loadDraftRegistrationAndNode).perform(draftId);
+        // TODO: 一時的なエラー対応
+        const draftRegistrationTask = taskFor(this.loadDraftRegistrationAndNode).perform(draftId) as any;
         const draftRegistrationManager = new DraftRegistrationManager(getOwner(this), draftRegistrationTask);
         const navigationManager = new NavigationManager(draftRegistrationManager);
         return {

@@ -56,7 +56,7 @@ export function getJupyterHubServerURL(
 }
 
 export default class JupyterServersList extends Component {
-    binderHubConfig: DS.PromiseObject<BinderHubConfigModel> & BinderHubConfigModel = this.binderHubConfig;
+    binderHubConfig!: DS.PromiseObject<BinderHubConfigModel> & BinderHubConfigModel;
 
     @requiredAction renewToken!: () => void;
 
@@ -70,7 +70,7 @@ export default class JupyterServersList extends Component {
 
     showDeleteConfirmDialogTarget: JupyterServer | null = null;
 
-    buildPhase: string | null = this.buildPhase;
+    buildPhase!: string | null;
 
     oldBuildPhase: string | null = null;
 

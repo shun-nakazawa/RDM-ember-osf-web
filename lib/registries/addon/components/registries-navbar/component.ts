@@ -1,5 +1,4 @@
 import { tagName } from '@ember-decorators/component';
-import { action } from '@ember/object';
 import { computed } from '@ember/object';
 import { and } from '@ember/object/computed';
 import RouterService from '@ember/routing/router-service';
@@ -42,12 +41,6 @@ export default class RegistriesNavbar extends AuthBase {
     }
 
     title: string = pageName;
-
-    @action
-    _onSearch(query: string) {
-        this.onSearch(query);
-        this.set('searchDropdownOpen', false);
-    }
 
     @computed('media.{isMobile,isTablet}', 'provider.brand')
     get shouldShowProviderName() {

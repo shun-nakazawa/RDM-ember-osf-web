@@ -1,8 +1,9 @@
 import { A } from '@ember/array';
 import EmberObject, { action, computed } from '@ember/object';
 import { later } from '@ember/runloop';
-import { all, timeout } from 'ember-concurrency';
-import { task } from 'ember-concurrency-decorators';
+import { waitFor } from '@ember/test-waiters';
+import { all, restartableTask, task, timeout } from 'ember-concurrency';
+import { taskFor } from 'ember-concurrency-ts';
 
 import File from 'ember-osf-web/models/file';
 import Node from 'ember-osf-web/models/node';
@@ -15,8 +16,8 @@ export default class IQBRIMSFileBrowser extends EmberObject {
     folderName: string | null = null;
     owner: GuidNodeIQBRIMS | null = null;
 
-    filter: string = this.filter || '';
-    sort: string = this.sort || 'name';
+    filter = '';
+    sort = 'name';
     newFolderRequest?: object;
     gdLoading = true;
     gdEmpty = false;
@@ -46,28 +47,31 @@ export default class IQBRIMSFileBrowser extends EmberObject {
         return false;
     }
 
-    @task({ restartable: true })
-    updateFilter = task(function *(this: IQBRIMSFileBrowser, filter: string) {
-        yield timeout(250);
+    @restartableTask
+    @waitFor
+    async updateFilter(filter: string) {
+        await timeout(250);
         this.setProperties({ filter });
-    });
+    }
 
     @task
-    flash = task(function *(item: File, message: string, type: string = 'success', duration: number = 2000) {
+    @waitFor
+    async flash(item: File, message: string, type: string = 'success', duration: number = 2000) {
         item.set('flash', { message, type });
-        yield timeout(duration);
+        await timeout(duration);
         item.set('flash', null);
-    });
+    }
 
     @task
-    addFile = task(function *(this: IQBRIMSFileBrowser, id: string) {
+    @waitFor
+    async addFile(id: string) {
         const allFiles = this.get('allFiles');
         if (!allFiles || !this.owner) {
             return;
         }
         const duplicate = allFiles.findBy('id', id);
 
-        const file = yield this.owner.get('store')
+        const file = await this.owner.get('store')
             .findRecord('file', id, duplicate ? {} : { adapterOptions: { query: { create_guid: 1 } } });
 
         if (duplicate) {
@@ -83,17 +87,18 @@ export default class IQBRIMSFileBrowser extends EmberObject {
 
         const intl = this.owner.get('intl');
         this.owner.get('toast').success(intl.t('file_browser.file_added_toast'));
-        this.get('flash').perform(file, intl.t('file_browser.file_added'));
-    });
+        taskFor(this.flash).perform(file, intl.t('file_browser.file_added'));
+    }
 
     @task
-    deleteFile = task(function *(this: IQBRIMSFileBrowser, file: File) {
+    @waitFor
+    async deleteFile(file: File) {
         if (!this.owner) {
             return;
         }
         try {
-            yield file.destroyRecord();
-            yield this.get('flash').perform(file, this.owner.get('intl').t('file_browser.file_deleted'), 'danger');
+            await file.destroyRecord();
+            await taskFor(this.flash).perform(file, this.owner.get('intl').t('file_browser.file_deleted'), 'danger');
             const allFiles = this.get('allFiles');
             if (!allFiles) {
                 return;
@@ -101,25 +106,25 @@ export default class IQBRIMSFileBrowser extends EmberObject {
             allFiles.removeObject(file);
             this.notifyChange();
         } catch (e) {
-            yield this.get('flash').perform(file, this.owner.get('intl').t('file_browser.delete_failed'), 'danger');
+            await taskFor(this.flash).perform(file, this.owner.get('intl').t('file_browser.delete_failed'), 'danger');
         }
-    });
+    }
 
     @task
-    deleteFiles = task(function *(this: IQBRIMSFileBrowser, files: File[]) {
-        const deleteFile = this.get('deleteFile');
-
-        yield all(files.map(file => deleteFile.perform(file)));
-    });
+    @waitFor
+    async deleteFiles(files: File[]) {
+        await all(files.map(file => taskFor(this.deleteFile).perform(file)));
+    }
 
     @task
-    moveFile = task(function *(this: IQBRIMSFileBrowser, file: File, node: Node): IterableIterator<any> {
+    @waitFor
+    async moveFile(file: File, node: Node) {
         if (!this.owner) {
             return;
         }
         try {
-            yield file.move(node);
-            yield this.get('flash').perform(file, this.owner.get('intl').t('file_browser.successfully_moved'));
+            await file.move(node);
+            await taskFor(this.flash).perform(file, this.owner.get('intl').t('file_browser.successfully_moved'));
             const allFiles = this.get('allFiles');
             if (!allFiles) {
                 return;
@@ -129,11 +134,11 @@ export default class IQBRIMSFileBrowser extends EmberObject {
         } catch (ex) {
             this.owner.get('toast').error(this.owner.get('intl').t('move_to_project.could_not_move_file'));
         }
-    });
+    }
 
     @task
-    renameFile = task(function *(
-        this: IQBRIMSFileBrowser,
+    @waitFor
+    async renameFile(
         file: File,
         name: string,
         conflict?: string,
@@ -142,16 +147,15 @@ export default class IQBRIMSFileBrowser extends EmberObject {
         if (!this.owner) {
             return;
         }
-        const flash = this.get('flash');
 
         try {
-            yield file.rename(name, conflict);
+            await file.rename(name, conflict);
 
             // intentionally not yielded
-            flash.perform(file, this.owner.get('intl').t('file_browser.successfully_renamed'));
+            taskFor(this.flash).perform(file, this.owner.get('intl').t('file_browser.successfully_renamed'));
 
             if (conflictingFile) {
-                yield flash.perform(conflictingFile, this.owner.get('intl').t('file_browser.file_replaced'), 'danger');
+                await taskFor(this.flash).perform(conflictingFile, this.owner.get('intl').t('file_browser.file_replaced'), 'danger');
                 const allFiles = this.get('allFiles');
                 if (!allFiles) {
                     return;
@@ -160,9 +164,9 @@ export default class IQBRIMSFileBrowser extends EmberObject {
             }
             this.notifyChange();
         } catch (ex) {
-            yield this.get('flash').perform(file, this.owner.get('intl').t('file_browser.rename_failed'), 'danger');
+            taskFor(this.flash).perform(file, this.owner.get('intl').t('file_browser.rename_failed'), 'danger');
         }
-    });
+    }
 
     @computed('owner.workingDirectory.files.[]')
     get targetDirectory(): File | undefined {
@@ -257,14 +261,15 @@ export default class IQBRIMSFileBrowser extends EmberObject {
     }
 
     @computed('allFiles.[]', 'filter', 'sort')
-    get files(this: IQBRIMSFileBrowser): File[] | null {
+    get files(): File[] | null {
         const filter: string = this.get('filter');
         const sort: string = this.get('sort');
 
-        let results = this.get('allFiles');
-        if (!results) {
+        let _results = this.get('allFiles');
+        if (!_results) {
             return null;
         }
+        let results = _results.slice();
 
         if (filter) {
             const filterLowerCase = filter.toLowerCase();
@@ -285,12 +290,12 @@ export default class IQBRIMSFileBrowser extends EmberObject {
     }
 
     @computed('currentUser.currentUserId', 'user.id')
-    get canEdit(this: IQBRIMSFileBrowser): boolean {
+    get canEdit(): boolean {
         return true;
     }
 
     @action
-    async openFile(this: IQBRIMSFileBrowser, file: File, show: string) {
+    async openFile(file: File, show: string) {
         if (!this.owner) {
             return;
         }

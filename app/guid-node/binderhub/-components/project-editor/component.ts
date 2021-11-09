@@ -100,23 +100,23 @@ export default class ProjectEditor extends Component {
 
     node?: Node | null = null;
 
-    binderHubConfig: DS.PromiseObject<BinderHubConfigModel> & BinderHubConfigModel = this.binderHubConfig;
+    binderHubConfig!: DS.PromiseObject<BinderHubConfigModel> & BinderHubConfigModel;
 
-    configFolder: FileModel = this.configFolder;
+    configFolder!: FileModel;
 
-    dockerfileModel: FileModel | null = this.dockerfileModel;
+    dockerfileModel!: FileModel | null;
 
-    environmentModel: FileModel | null = this.environmentModel;
+    environmentModel!: FileModel | null;
 
-    requirementsModel: FileModel | null = this.requirementsModel;
+    requirementsModel!: FileModel | null;
 
-    aptModel: FileModel | null = this.aptModel;
+    aptModel!: FileModel | null;
 
-    installRModel: FileModel | null = this.installRModel;
+    installRModel!: FileModel | null;
 
-    postInstallScriptModel: FileModel | null = this.postInstallScriptModel;
+    postInstallScriptModel!: FileModel | null;
 
-    configStorageProvider: FileProviderModel = this.configStorageProvider;
+    configStorageProvider!: FileProviderModel;
 
     showResetDockerfileConfirmDialog = false;
 

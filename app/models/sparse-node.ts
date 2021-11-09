@@ -32,7 +32,7 @@ export default class SparseNodeModel extends OsfModel {
     bibliographicContributors!: AsyncHasMany<ContributorModel>;
 
     @belongsTo('user', { inverse: null })
-    creator!: DS.PromiseObject<UserModel> & UserModel;
+    creator!: AsyncBelongsTo<UserModel> & UserModel;
 
     @belongsTo('node', { inverse: 'children' })
     parent!: AsyncBelongsTo<NodeModel> & NodeModel;

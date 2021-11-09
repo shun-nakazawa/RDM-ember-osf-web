@@ -112,7 +112,7 @@ maintenance:
     line2: ご不自由をおかけいたしますが、ご協力どうぞよろしくお願いいたします。
     title: お知らせ：
 quickfiles:
-    title: ' {user-name}のQuick File'
+    title: ' {userName}のQuick File'
     description: ' ここにアップロードされたファイルは<b>一般公開</b>されており、共有リンクを使用して他のユーザーと簡単に共有できます。'
     feedback_dialog_text: 'Quick Fileについてご意見をお聞かせください。'
     transition_auth: 'Quick Fileを表示するには、ログインしている必要があります。ログインページに遷移します。'
@@ -129,7 +129,7 @@ feedback:
 file_detail:
     version:
         id: バージョンID
-        title: '(バージョン: {version-number})'
+        title: '(バージョン: {versionNumber})'
     embed:
         dynamic: 動的にJavaScriptを用いたレンダーiframe
         direct: 高さと幅を固定したダイレクトiframe
@@ -137,7 +137,7 @@ file_detail:
     toggle: 'ビュー切り替え:'
     delete_file:
         question: 'ファイルを削除しますか？?'
-        confirm: '本当に<b>{file-name}</b>を削除してもよろしいですか？'
+        confirm: '本当に<b>{fileName}</b>を削除してもよろしいですか？'
     sha2_description: SHA-2は、データの完全性を検証するために使用されるNSAによって設計された暗号ハッシュ関数です。
     md5_description: MD5は、データの完全性を検証するために使用されるアルゴリズムです。
     delete_success: ファイルが削除されました。

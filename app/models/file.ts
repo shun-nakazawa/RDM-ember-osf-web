@@ -162,8 +162,8 @@ export default class FileModel extends BaseFileItem {
         }).then(() => this.reload());
     }
 
-    moveOnCurrentProject(newProvider: string, newPath: string): Promise<null> {
-        return new Promise<null>((resolve, reject) => {
+    moveOnCurrentProject(newProvider: string, newPath: string): Promise<void> {
+        return new Promise<void>((resolve, reject) => {
             this.currentUser.authenticatedAJAX({
                 url: getHref(this.links.move),
                 type: 'POST',
@@ -192,7 +192,7 @@ export default class FileModel extends BaseFileItem {
         });
     }
 
-    delete(): Promise<null> {
+    delete(): Promise<void> {
         assert('links.delete is required to remove a file or folder', Boolean(this.links.delete));
         return this.currentUser.authenticatedAJAX({
             url: getHref(this.links.delete),

@@ -7,6 +7,6 @@ export default Factory.extend<BinderHubConfigModel>({
 
 declare module 'ember-cli-mirage/types/registries/schema' {
     export default interface MirageSchemaRegistry {
-        myscreenConfigs: BinderHubConfigModel;
+        binderHubConfigs: BinderHubConfigModel;
     } // eslint-disable-line semi
 }
