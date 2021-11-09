@@ -7,9 +7,9 @@ import { requiredAction } from 'ember-osf-web/decorators/component';
 export default class PackageEditor extends Component {
     node?: Node | null = null;
 
-    label: string = this.label;
+    label!: string;
 
-    packages: Array<[string, string]> = this.packages;
+    packages!: Array<[string, string]>;
 
     editingIndex: number = -1;
 

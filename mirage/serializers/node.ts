@@ -118,12 +118,19 @@ export default class NodeSerializer extends ApplicationSerializer<MirageNode> {
                     },
                 },
             },
+            storage: {
+                links: {
+                    related: {
+                        href: `${apiUrl}/v2/nodes/${model.id}/storage/`,
+                    },
+                },
+            },
         };
         if (model.attrs.parentId !== null) {
             const { parentId } = model.attrs;
             relationships.parent = {
                 data: {
-                    id: parentId,
+                    id: parentId as string,
                     type: this.typeKeyForModel(model),
                 },
                 links: {
@@ -138,7 +145,7 @@ export default class NodeSerializer extends ApplicationSerializer<MirageNode> {
             const { rootId } = model.attrs;
             relationships.root = {
                 data: {
-                    id: rootId,
+                    id: rootId as string,
                     type: this.typeKeyForModel(model),
                 },
                 links: {
@@ -153,7 +160,7 @@ export default class NodeSerializer extends ApplicationSerializer<MirageNode> {
             const { licenseId } = model.attrs;
             relationships.license = {
                 data: {
-                    id: licenseId,
+                    id: licenseId as string,
                     type: 'licenses',
                 },
                 links: {

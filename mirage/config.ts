@@ -2,10 +2,11 @@ import { Server } from 'ember-cli-mirage';
 import config from 'ember-get-config';
 
 import { binderhubConfig } from './views/binderhub-config';
+import { createReviewAction } from 'ember-osf-web/mirage/views/review-action';
 import { getCitation } from './views/citation';
 import { searchCollections } from './views/collection-search';
 import { reportDelete } from './views/comment';
-import { createBibliographicContributor } from './views/contributor';
+import { addContributor, createBibliographicContributor } from './views/contributor';
 import { createDeveloperApp, updateDeveloperApp } from './views/developer-app';
 import { createDraftRegistration } from './views/draft-registration';
 import {
@@ -20,14 +21,25 @@ import { guidDetail } from './views/guid';
 import { identifierCreate } from './views/identifier';
 import { summaryMetrics } from './views/institution';
 import { iqbrimsStatus } from './views/iqbrims-status';
-import { createNode } from './views/node';
+import { addModerator } from './views/moderator';
+import { createNode, storageStatus } from './views/node';
 import { osfNestedResource, osfResource, osfToManyRelationship } from './views/osf-resource';
 import { getProviderSubjects } from './views/provider-subjects';
-import { createRegistration, forkRegistration, registrationDetail } from './views/registration';
+import {
+    createRegistration,
+    forkRegistration,
+    getProviderRegistrations,
+    registrationDetail,
+} from './views/registration';
 import { rootDetail } from './views/root';
+import { shareSearch } from './views/share-search';
 import { createToken } from './views/token';
 import { createEmails, updateEmails } from './views/update-email';
-import { userNodeList } from './views/user';
+import {
+    claimUnregisteredUser,
+    userNodeList,
+    userRegistrationList,
+} from './views/user';
 import { updatePassword } from './views/user-password';
 import * as userSettings from './views/user-setting';
 import * as wb from './views/wb';
@@ -36,6 +48,11 @@ const { OSF: { apiUrl, url } } = config;
 
 export default function(this: Server) {
     this.passthrough(); // pass through all requests on currrent domain
+    // SHARE search
+    this.urlPrefix = 'https://share.osf.io';
+    this.namespace = '/api/v2/';
+
+    this.post('/search/creativeworks/_search', shareSearch);
 
     this.urlPrefix = apiUrl;
     this.namespace = '/v2';
@@ -105,6 +122,15 @@ export default function(this: Server) {
         path: '/nodes/:parentID/relationships/institutions',
     });
     osfNestedResource(this, 'node', 'addons', { only: ['index'] });
+    this.get('/nodes/:id/storage', storageStatus);
+    osfResource(this, 'draft-node', { only: ['show', 'index', 'create'] });
+    osfNestedResource(this, 'draft-node', 'draftRegistrations', { only: ['index'] });
+    this.get('/draft_nodes/:parentID/files', nodeFileProviderList); // DraftNode file providers list
+    this.get('/draft_nodes/:parentID/files/:fileProviderId',
+        nodeFilesListForProvider); // DraftNode files list for file provider
+    this.get('/draft_nodes/:parentID/files/:fileProviderId/:folderId',
+        folderFilesList); // DraftNode folder detail view
+    this.put('/draft_nodes/:parentID/files/:fileProviderId/upload', uploadToRoot); // Upload to file provider
 
     osfToManyRelationship(this, 'node', 'subjects', {
         only: ['related', 'self'],
@@ -114,6 +140,7 @@ export default function(this: Server) {
         only: ['index', 'show', 'update'],
         path: '/draft_registrations',
     });
+    this.post('/draft_registrations', createDraftRegistration);
     osfToManyRelationship(this, 'draft-registration', 'subjects');
     osfToManyRelationship(this, 'draft-registration', 'affiliatedInstitutions', {
         only: ['related', 'update', 'add', 'remove'],
@@ -121,13 +148,35 @@ export default function(this: Server) {
     });
     osfNestedResource(this, 'draft-registration', 'contributors', {
         defaultSortKey: 'index',
+        except: ['create'],
+    });
+    osfNestedResource(this, 'draft-registration', 'bibliographicContributors', {
+        only: ['index'],
+        relatedModelName: 'contributor',
+        defaultSortKey: 'index',
+    });
+    this.post('/draft_registrations/:draftId/contributors/', addContributor);
+    osfNestedResource(this, 'draft-registration', 'bibliographicContributors', {
+        only: ['index'],
+        relatedModelName: 'contributor',
+        defaultSortKey: 'index',
     });
 
+    osfResource(this, 'review-action', {
+        only: ['show'],
+        path: '/actions',
+    });
     osfResource(this, 'registration', { except: ['show', 'create'] });
     this.post('/registrations', createRegistration);
     this.get('/registrations/:id', registrationDetail);
     osfNestedResource(this, 'registration', 'children');
     osfNestedResource(this, 'registration', 'forks', { except: ['create'] });
+    osfNestedResource(this, 'registration', 'reviewActions', {
+        only: ['index'],
+        path: '/registrations/:parentID/actions',
+        relatedModelName: 'review-action',
+    });
+    this.post('/registrations/:parentID/actions', createReviewAction);
     this.post('/registrations/:id/forks', forkRegistration);
 
     osfNestedResource(this, 'registration', 'contributors', { defaultSortKey: 'index' });
@@ -149,7 +198,7 @@ export default function(this: Server) {
     osfNestedResource(this, 'registration', 'comments', { only: ['index'] });
     this.get('/registrations/:guid/citation/:citationStyleID', getCitation);
     osfToManyRelationship(this, 'registration', 'subjects', {
-        only: ['related', 'self'],
+        only: ['related', 'self', 'update'],
     });
     osfResource(this, 'subject', { only: ['show'] });
 
@@ -166,6 +215,8 @@ export default function(this: Server) {
         defaultSortKey: 'index',
         defaultPageSize: 1000,
     });
+
+    osfResource(this, 'brand', { only: ['show'] });
 
     osfResource(this, 'collection');
     osfToManyRelationship(this, 'collection', 'linkedRegistrations', {
@@ -193,6 +244,7 @@ export default function(this: Server) {
     this.post('/users/:parentID/settings/emails/', createEmails);
     this.post('/users/:id/settings/export', userSettings.requestExport);
     this.post('/users/:parentID/settings/password/', updatePassword);
+    this.post('/users/:parentID/claim/', claimUnregisteredUser);
 
     osfResource(this, 'external-identity', {
         path: '/users/me/settings/identities',
@@ -201,16 +253,39 @@ export default function(this: Server) {
 
     this.get('/users/:id/nodes', userNodeList);
     this.get('/sparse/users/:id/nodes', userNodeList);
+    this.get('/users/:id/registrations', userRegistrationList);
+    osfNestedResource(this, 'user', 'draftRegistrations', {
+        only: ['index'],
+    });
 
     osfNestedResource(this, 'user', 'quickfiles', { only: ['index', 'show'] });
 
     osfResource(this, 'preprint-provider', { path: '/providers/preprints' });
     osfResource(this, 'registration-provider', { path: '/providers/registrations' });
+    osfNestedResource(this, 'registration-provider', 'moderators', {
+        only: ['index', 'show', 'update', 'delete'],
+        path: '/providers/registrations/:parentID/moderators/',
+        relatedModelName: 'moderator',
+    });
+    this.post('providers/registrations/:parentID/moderators', addModerator);
+    osfNestedResource(this, 'registration-provider', 'registrations', {
+        only: ['show', 'update', 'delete'],
+        path: '/providers/registrations/:parentID/registrations/',
+        relatedModelName: 'registration',
+    });
+    this.get('/providers/registrations/:parentID/registrations/', getProviderRegistrations);
     osfNestedResource(this, 'registration-provider', 'licensesAcceptable', {
         only: ['index'],
         path: '/providers/registrations/:parentID/licenses/',
         relatedModelName: 'license',
     });
+    this.get('/providers/registrations/:parentID/subjects/', getProviderSubjects);
+    osfNestedResource(this, 'registration-provider', 'schemas', {
+        only: ['index'],
+        path: '/providers/registrations/:parentID/schemas/',
+        relatedModelName: 'registration-schema',
+    });
+
     this.get('/providers/registrations/:parentID/subjects/', getProviderSubjects);
 
     osfResource(this, 'collection-provider', { path: '/providers/collections' });
@@ -221,6 +296,8 @@ export default function(this: Server) {
         path: 'collections/:parentID/collected_metadata/',
     });
     this.post('/search/collections/', searchCollections);
+
+    osfResource(this, 'subscription', { only: ['index', 'show', 'update'] });
 
     // Waterbutler namespace
     this.namespace = '/wb';

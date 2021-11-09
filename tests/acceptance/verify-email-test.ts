@@ -1,7 +1,7 @@
 import { visit } from '@ember/test-helpers';
 
 import { ModelInstance } from 'ember-cli-mirage';
-import setupMirage from 'ember-cli-mirage/test-support/setup-mirage';
+import { setupMirage } from 'ember-cli-mirage/test-support';
 import { percySnapshot } from 'ember-percy';
 import { module, test } from 'qunit';
 
@@ -31,14 +31,12 @@ module('Acceptance | verify email', hooks => {
         const beforeCount = user.emails.length;
 
         await visit('/dashboard');
-
         assert.dom('[data-test-verify-email-prompt]').exists();
         await percySnapshot(assert);
 
         await click('[data-test-verify-email]');
-
         user.reload();
-        assert.dom('[data-test-verify-email-prompt').doesNotExist();
+        assert.dom('[data-test-verify-email-prompt]').doesNotExist();
         assert.equal(user.emails.length, beforeCount, 'Correct number of user emails');
         assert.ok(user.emails.models.every(email => email.verified), 'All user emails verified');
     });
@@ -47,7 +45,6 @@ module('Acceptance | verify email', hooks => {
         const user = server.create('user', 'loggedIn', 'withUnverifiedEmail');
         const beforeCount = user.emails.length;
         await visit('/dashboard');
-
         const emails = unverifiedEmails(user);
         for (const unverifiedEmail of emails) {
             const { emailAddress } = unverifiedEmail;
@@ -60,7 +57,7 @@ module('Acceptance | verify email', hooks => {
         }
 
         user.reload();
-        assert.dom('[data-test-verify-email-prompt').doesNotExist();
+        assert.dom('[data-test-verify-email-prompt]').doesNotExist();
         assert.equal(user.emails.length, beforeCount, 'Correct number of user emails');
         assert.ok(user.emails.models.every(email => email.verified), 'All user emails verified');
     });
@@ -70,13 +67,12 @@ module('Acceptance | verify email', hooks => {
         const beforeCount = user.emails.length;
 
         await visit('/dashboard');
-
         assert.dom('[data-test-verify-email-prompt]').exists();
 
         await click('[data-test-deny-email]');
 
         user.reload();
-        assert.dom('[data-test-verify-email-prompt').doesNotExist();
+        assert.dom('[data-test-verify-email-prompt]').doesNotExist();
         assert.equal(user.emails.length, beforeCount - 1, 'Correct number of user emails');
         assert.ok(user.emails.models.every(email => email.verified), 'All user emails verified');
     });
@@ -86,7 +82,6 @@ module('Acceptance | verify email', hooks => {
         const beforeCount = user.emails.length;
 
         await visit('/dashboard');
-
         const emails = unverifiedEmails(user);
         for (const unverifiedEmail of emails) {
             const { emailAddress, isMerge } = unverifiedEmail;
@@ -99,7 +94,7 @@ module('Acceptance | verify email', hooks => {
         }
 
         user.reload();
-        assert.dom('[data-test-verify-email-prompt').doesNotExist();
+        assert.dom('[data-test-verify-email-prompt]').doesNotExist();
         assert.equal(user.emails.length, beforeCount - 2, 'Correct number of user emails');
         assert.ok(user.emails.models.every(email => email.verified), 'All user emails verified');
     });

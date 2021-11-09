@@ -1,16 +1,20 @@
 import Component from '@ember/component';
 import { action, computed } from '@ember/object';
 import { inject as service } from '@ember/service';
-import { task } from 'ember-concurrency-decorators';
+import { dropTask } from 'ember-concurrency';
+import { taskFor } from 'ember-concurrency-ts';
 import Intl from 'ember-intl/services/intl';
 import Toast from 'ember-toastr/services/toast';
 
 import { layout } from 'ember-osf-web/decorators/component';
 import Registration from 'ember-osf-web/models/registration';
 import captureException, { getApiErrorMessage } from 'ember-osf-web/utils/capture-exception';
-import defaultTo from 'ember-osf-web/utils/default-to';
 import randomScientist from 'ember-osf-web/utils/random-scientist';
 
+import { Changeset } from 'ember-changeset';
+import lookupValidator, { ValidationObject } from 'ember-changeset-validations';
+import { validateLength } from 'ember-changeset-validations/validators';
+import { BufferedChangeset } from 'ember-changeset/types';
 import styles from './styles';
 import template from './template';
 
@@ -20,41 +24,57 @@ export default class RegistrationIsPublic extends Component {
     @service toast!: Toast;
 
     registration!: Registration;
+    changeset!: BufferedChangeset;
 
     scientistName?: string;
-    scientistNameInput?: string = '';
-    withdrawalJustification?: string = '';
+    scientistNameInput? = '';
     closeDropdown!: () => void;
-    showModal: boolean = defaultTo(this.showModal, false);
+    showModal = false;
 
-    @task({ drop: true })
-    submitWithdrawal = task(function *(this: RegistrationIsPublic) {
+    changesetValidation: ValidationObject<Registration> = {
+        withdrawalJustification: validateLength({
+            allowBlank: true,
+            max: 2048,
+            type: 'tooLong',
+            translationArgs: {
+                description: this.intl.t('registries.overview.withdraw.withdrawal_justification'),
+                max: 2048,
+            },
+        }),
+    };
+
+    @dropTask
+    async submitWithdrawal() {
         if (!this.registration) {
             return;
         }
 
-        this.registration.setProperties({
-            pendingWithdrawal: true,
-            withdrawalJustification: this.withdrawalJustification,
-        });
+        this.changeset.set('pendingWithdrawal', true);
+        this.changeset.validate();
+        if (this.changeset.isValid) {
+            try {
+                await this.changeset.save({});
+            } catch (e) {
+                const errorMessage = this.intl.t('registries.overview.withdraw.error');
+                captureException(e, { errorMessage });
+                this.toast.error(getApiErrorMessage(e), errorMessage);
+                throw e;
+            }
 
-        try {
-            yield this.registration.save();
-        } catch (e) {
-            const errorMessage = this.intl.t('registries.overview.withdraw.error');
-            captureException(e, { errorMessage });
-            this.toast.error(getApiErrorMessage(e), errorMessage);
-            throw e;
+            this.toast.success(this.intl.t('registries.overview.withdraw.success'));
+
+            if (this.closeDropdown) {
+                this.closeDropdown();
+            }
         }
-
-        this.toast.success(this.intl.t('registries.overview.withdraw.success'));
-
-        if (this.closeDropdown) {
-            this.closeDropdown();
-        }
-    });
+    }
 
     didReceiveAttrs() {
+        this.changeset = Changeset(
+            this.registration,
+            lookupValidator(this.changesetValidation),
+            this.changesetValidation,
+        ) as BufferedChangeset;
         this.setProperties({
             scientistNameInput: '',
             scientistName: randomScientist(),
@@ -65,16 +85,18 @@ export default class RegistrationIsPublic extends Component {
         'submitWithdrawal.isRunning',
         'scientistNameInput',
         'scientistName',
+        'changeset.isInvalid',
     )
     get submitDisabled(): boolean {
-        return this.submitWithdrawal.isRunning
-            || (this.scientistNameInput !== this.scientistName);
+        return taskFor(this.submitWithdrawal).isRunning
+            || (this.scientistNameInput !== this.scientistName)
+            || this.changeset.isInvalid;
     }
 
     @action
     close() {
-        if (this.registration.hasDirtyAttributes) {
-            this.registration.rollbackAttributes();
+        if (this.changeset.isDirty) {
+            this.changeset.rollback();
         }
         this.closeDropdown();
     }

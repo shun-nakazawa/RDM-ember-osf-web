@@ -3,16 +3,16 @@
         <div local-class='Editable__header'>
             <h4>{{@title}}</h4>
             {{#if @manager.userCanEdit}}
-                <OsfButton
+                <Button
                    data-test-edit-button={{@name}}
                    aria-label={{t 'general.edit'}}
                    data-analytics-name='Edit'
                    local-class='EditButton'
-                   @type='link'
-                   @onClick={{action @manager.startEditing}}
+                   @layout='fake-link'
+                   {{on 'click' @manager.startEditing}}
                 >
-                    <FaIcon @icon='pencil' @fixedWidth={{true}} />
-                </OsfButton>
+                    <FaIcon @icon='pencil-alt' @fixedWidth={{true}} />
+                </Button>
             {{/if}}
         </div>
     </div>
@@ -53,25 +53,25 @@
     {{#unless @hasCustomButtons}}
         <dialog.footer>
             {{#if @manager.cancel}}
-                <OsfButton
+                <BsButton
                     data-test-discard-edits
                     data-analytics-name='Discard'
-                    @disabled={{@manager.isSaving}}
-                    @onClick={{action @manager.cancel}}
+                    disabled={{@manager.isSaving}}
+                    {{on 'click' @manager.cancel}}
                 >
                     {{t 'general.cancel'}}
-                </OsfButton>
+                </BsButton>
             {{/if}}
             {{#if @manager.save}}
-                <OsfButton
+                <BsButton
                     data-test-save-edits
                     data-analytics-name='Save'
+                    disabled={{@manager.isSaving}}
                     @type='primary'
-                    @disabled={{@manager.isSaving}}
-                    @onClick={{action @manager.save}}
+                    {{on 'click' @manager.save}}
                 >
                     {{t 'general.save'}}
-                </OsfButton>
+                </BsButton>
             {{/if}}
         </dialog.footer>
     {{/unless}}

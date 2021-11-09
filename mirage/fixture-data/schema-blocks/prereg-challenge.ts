@@ -1,5 +1,5 @@
 /* eslint-disable max-len */
-// tslint:disable:max-line-length
+/* eslint-disable max-len */
 
 import SchemaBlock from 'ember-osf-web/models/schema-block';
 
@@ -36,28 +36,6 @@ const schemaBlocks: Array<Partial<SchemaBlock>> = [
         helpText: '',
         schemaBlockGroupKey: '5da4cf60f04bcd000155f3e7',
         id: '5da4cf61f04bcd000155f3e9',
-    },
-    {
-        displayText: 'Authors',
-        exampleText: 'Jimmy Stewart, Ava Gardner, Bob Hope, Greta Garbo',
-        blockType: 'question-label',
-        registrationResponseKey: null,
-        index: 3,
-        required: false,
-        helpText: 'The author who submits the preregistration is the recipient of the award money and must also be an author of the published manuscript. Additional authors may be added or removed at any time.',
-        schemaBlockGroupKey: '5da4cf61f04bcd000155f3ea',
-        id: '5da4cf61f04bcd000155f3eb',
-    },
-    {
-        displayText: '',
-        exampleText: '',
-        blockType: 'contributors-input',
-        registrationResponseKey: 'q2',
-        index: 4,
-        required: true,
-        helpText: '',
-        schemaBlockGroupKey: '5da4cf61f04bcd000155f3ea',
-        id: '5da4cf61f04bcd000155f3ec',
     },
     {
         displayText: 'Research Questions',

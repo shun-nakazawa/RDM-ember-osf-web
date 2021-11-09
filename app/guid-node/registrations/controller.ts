@@ -1,10 +1,12 @@
+import Store from '@ember-data/store';
 import Controller from '@ember/controller';
 import { assert } from '@ember/debug';
 import { action, computed } from '@ember/object';
 import { alias } from '@ember/object/computed';
 import { inject as service } from '@ember/service';
-import { task } from 'ember-concurrency-decorators';
-import DS from 'ember-data';
+import { waitFor } from '@ember/test-waiters';
+import { task } from 'ember-concurrency';
+import config from 'ember-get-config';
 
 import Node from 'ember-osf-web/models/node';
 import RegistrationSchema from 'ember-osf-web/models/registration-schema';
@@ -12,12 +14,12 @@ import Analytics from 'ember-osf-web/services/analytics';
 
 export default class GuidNodeRegistrations extends Controller {
     @service analytics!: Analytics;
-    @service store!: DS.Store;
+    @service store!: Store;
 
     queryParams = ['tab'];
     tab?: string;
 
-    draftsQueryParams = { embed: ['initiator', 'registration_schema', 'branched_from'] };
+    draftsQueryParams = { embed: ['initiator', 'registration_schema', 'branched_from', 'provider'] };
     defaultSchema!: RegistrationSchema;
     selectedSchema!: RegistrationSchema;
     schemas: RegistrationSchema[] = [];
@@ -35,24 +37,22 @@ export default class GuidNodeRegistrations extends Controller {
         terms: 'https://osf.io/4uxbj/',
     };
 
+    @alias('model.taskInstance.value') node!: Node | null;
+
     @task
-    getRegistrationSchemas = task(function *(this: GuidNodeRegistrations) {
-        let schemas = yield this.store.query('registration-schema',
-            {
-                'filter[active]': true,
-            });
+    @waitFor
+    async getRegistrationSchemas() {
+        const { defaultProvider } = config;
+        const provider = await this.store.findRecord(
+            'registration-provider',
+            defaultProvider,
+        );
+        let schemas: RegistrationSchema[] = await provider.loadAll('schemas');
         schemas = schemas.toArray();
         schemas.sort((a: RegistrationSchema, b: RegistrationSchema) => a.name.length - b.name.length);
         this.set('defaultSchema', schemas.firstObject);
         this.set('selectedSchema', this.defaultSchema);
         this.set('schemas', schemas);
-    });
-
-    @alias('model.taskInstance.value') node!: Node | null;
-
-    @computed('tab')
-    get activeTab() {
-        return this.tab ? this.tab : 'registrations';
     }
 
     @computed('node.{id,root.id,root.userHasAdminPermission}')
@@ -61,9 +61,9 @@ export default class GuidNodeRegistrations extends Controller {
     }
 
     @action
-    changeTab(activeId: string) {
-        this.set('tab', activeId === 'registrations' ? undefined : activeId);
-        this.analytics.click('tab', `Registrations tab - Change tab to: ${activeId}`);
+    changeTab(activeId: number) {
+        const tabName = activeId === 0 ? 'registrations' : 'drafts';
+        this.analytics.click('tab', `Registrations tab - Change tab to: ${tabName}`);
     }
 
     @action

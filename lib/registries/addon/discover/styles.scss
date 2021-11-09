@@ -1,15 +1,14 @@
-.ShareLogo {
-    background-size: contain !important;
-    background-repeat: no-repeat !important;
-    background: url('img/share-logo-white.png');
-    display: inline-block;
-    height: 33px;
-    vertical-align: middle;
-    width: 69px;
+.ResultsHeader {
+    padding: 0 0 15px;
+
+    h2 {
+        margin: 0;
+    }
 }
 
 .SortDropDown__List {
     background-color: $color-bg-gray-light;
+    left: auto;
 }
 
 .SortDropDown__Option {
@@ -21,16 +20,14 @@
     width: 100%;
 }
 
-.ActiveFilters--RegistrationType {
-    background-color: #d7e6e9;
-}
+.RegistriesSearchResult {
+    h4 {
+        font-size: 24px;
+        font-weight: 400;
+    }
 
-.ActiveFilters--Sources {
-    background-color: #578ca2;
-    color: #eee;
-
-    & > i {
-        color: #eee;
+    svg {
+        color: var(--primary-color);
     }
 }
 

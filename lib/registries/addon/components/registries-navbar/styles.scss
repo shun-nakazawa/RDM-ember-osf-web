@@ -13,7 +13,7 @@
     :global(.open) & {
         color: $slate-gray;
 
-        & i:global(.fa) {
+        & svg:global(.fa-fw) {
             color: $secondary-blue;
         }
     }
@@ -22,7 +22,7 @@
         background-color: $osf-dark-blue-navbar;
         border: 0;
 
-        i {
+        svg {
             font-size: 20px;
         }
 
@@ -31,6 +31,10 @@
             outline: 0;
         }
     }
+}
+
+:global(.with-custom-branding) .Service.Dropdown {
+    display: none;
 }
 
 .DropdownMenu {
@@ -48,6 +52,7 @@
 }
 
 :global(.media-mobile) .HideOnMobile,
+:global(.media-tablet) .HideOnTablet,
 :global(.media-desktop) .OnlyOnMobile,
 :global(.media-tablet) .OnlyOnMobile {
     display: none;
@@ -55,13 +60,31 @@
 
 // /Utility classes
 
+.Brand {
+    display: flex;
+    align-items: center;
+}
+
 .Logo {
     width: 35px;
     height: 35px;
     margin-right: 5px;
     background-size: 100%;
-    background-image: url('img/cos-logo-white.svg');
+    background-image: var(--navbar-logo-img-url);
     background-repeat: no-repeat;
+}
+
+.HomeLink {
+    color: $white;
+    font-size: 18px;
+    font-weight: 400;
+    text-decoration: none;
+    margin: 0 16px 0 10px;
+
+    &.HomeLink:hover {
+        color: $white;
+        text-decoration: none;
+    }
 }
 
 .Service {
@@ -83,26 +106,8 @@
     text-transform: uppercase;
 }
 
-.SearchBar {
-    :global(.media-desktop) & {
-        width: 300px;
-    }
-
-    :global(.media-tablet) & {
-        width: 200px;
-    }
-
-    :global(.media-mobile) & {
-        display: none;
-    }
-
-    & i {
-        font-size: 20px;
-    }
-
-    input {
-        min-width: 0;
-    }
+.SecondaryNavLinkButton {
+    margin-left: 25px;
 }
 
 .AuthDropdown {
@@ -140,31 +145,5 @@
         position: relative;
         left: 2px;
         margin-right: 3px;
-    }
-}
-
-.SearchDropdown {
-    height: 50px;
-    transition: height 0.4s;
-    overflow: hidden;
-    background: $dark-slate-gray;
-
-    &.Closed {
-        height: 0;
-    }
-
-    // Remove padding from the icon-input component
-    // and rely on the padding from <Container />
-    & span > span {
-        padding: 0;
-    }
-
-    & span,
-    & input {
-        height: 100%;
-    }
-
-    & i {
-        font-size: 20px;
     }
 }

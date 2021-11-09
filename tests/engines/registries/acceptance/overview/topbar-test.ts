@@ -1,56 +1,67 @@
 import { triggerEvent } from '@ember/test-helpers';
 import { ModelInstance } from 'ember-cli-mirage';
-import setupMirage from 'ember-cli-mirage/test-support/setup-mirage';
+import { setupMirage } from 'ember-cli-mirage/test-support';
 import { t } from 'ember-intl/test-support';
+import { percySnapshot } from 'ember-percy';
 import moment from 'moment';
 import { module, test } from 'qunit';
 
 import { MirageCollection } from 'ember-osf-web/mirage/factories/collection';
 import { Permission } from 'ember-osf-web/models/osf-model';
+import { RegistrationReviewStates } from 'ember-osf-web/models/registration';
 import { click, visit } from 'ember-osf-web/tests/helpers';
 import { setupEngineApplicationTest } from 'ember-osf-web/tests/helpers/engines';
 import stripHtmlTags from 'ember-osf-web/utils/strip-html-tags';
 
 const registrationStates: Record<string, {
-    trait: string, icon: string,
-    initiallyOpened: boolean, hasAdminActions: boolean }> = {
-        embargoed: {
-            trait: 'isEmbargoed',
-            icon: 'lock',
-            initiallyOpened: false,
-            hasAdminActions: true,
-        },
-        pendingWithdrawal: {
-            trait: 'isPendingWithdrawal',
-            icon: 'clock-o',
-            initiallyOpened: true,
-            hasAdminActions: false,
-        },
-        pendingRegistration: {
-            trait: 'isPendingApproval',
-            icon: 'clock-o',
-            initiallyOpened: true,
-            hasAdminActions: false,
-        },
-        pendingEmbargo: {
-            trait: 'isPendingEmbargoApproval',
-            icon: 'clock-o',
-            initiallyOpened: true,
-            hasAdminActions: false,
-        },
-        pendingEmbargoTermination: {
-            trait: 'isPendingEmbargoTerminationApproval',
-            icon: 'clock-o',
-            initiallyOpened: true,
-            hasAdminActions: false,
-        },
-        public: {
-            trait: 'isPublic',
-            icon: 'eye',
-            initiallyOpened: false,
-            hasAdminActions: true,
-        },
-    };
+    trait: string,
+    icon: string,
+    initiallyOpened: boolean,
+    hasAdminActions: boolean,
+}> = {
+    embargo: {
+        trait: 'isEmbargo',
+        icon: 'lock',
+        initiallyOpened: false,
+        hasAdminActions: true,
+    },
+    pendingWithdraw: {
+        trait: 'isPendingWithdraw',
+        icon: 'clock',
+        initiallyOpened: true,
+        hasAdminActions: false,
+    },
+    pendingRegistrationApproval: {
+        trait: 'isPendingRegistrationApproval',
+        icon: 'clock',
+        initiallyOpened: true,
+        hasAdminActions: false,
+    },
+    pendingEmbargoApproval: {
+        trait: 'isPendingEmbargoApproval',
+        icon: 'clock',
+        initiallyOpened: true,
+        hasAdminActions: false,
+    },
+    pendingEmbargoTermination: {
+        trait: 'isPendingEmbargoTermination',
+        icon: 'clock',
+        initiallyOpened: true,
+        hasAdminActions: false,
+    },
+    pendingWithdrawRequest: {
+        trait: 'isPendingWithdrawRequest',
+        icon: 'clock',
+        initiallyOpened: true,
+        hasAdminActions: false,
+    },
+    accepted: {
+        trait: 'isPublic',
+        icon: 'eye',
+        initiallyOpened: false,
+        hasAdminActions: true,
+    },
+};
 
 module('Registries | Acceptance | overview.topbar', hooks => {
     setupEngineApplicationTest(hooks, 'registries');
@@ -59,6 +70,7 @@ module('Registries | Acceptance | overview.topbar', hooks => {
     test('topbar is not visible for archiving or withdrawn registrations', async assert => {
         const reg = server.create('registration', {
             registrationSchema: server.schema.registrationSchemas.find('prereg_challenge'),
+            provider: server.create('registration-provider'),
         });
         await visit(`/${reg.id}/`);
 
@@ -84,9 +96,22 @@ module('Registries | Acceptance | overview.topbar', hooks => {
         assert.dom('[data-test-topbar-states]').doesNotExist();
     });
 
+    test('registration state is not visible in topbar when viewing registrations anonymously', async assert => {
+        const anonymousReg = server.create('registration', {
+            registrationSchema: server.schema.registrationSchemas.find('prereg_challenge'),
+        }, 'anonymized');
+
+        await visit(`/${anonymousReg.id}/`);
+        await percySnapshot(assert);
+
+        assert.dom('[data-test-topbar-share-bookmark-fork]').exists();
+        assert.dom('[data-test-topbar-states]').doesNotExist();
+    });
+
     test('bookmarks work', async assert => {
         const reg = server.create('registration', {
             registrationSchema: server.schema.registrationSchemas.find('prereg_challenge'),
+            provider: server.create('registration-provider'),
         });
 
         const bookmarksColl = server.create(
@@ -97,7 +122,7 @@ module('Registries | Acceptance | overview.topbar', hooks => {
         await visit(`/${reg.id}/`);
 
         assert.dom('[data-test-bookmarks-button]').isVisible();
-        assert.dom('[data-test-bookmarks-button] i').hasClass('fa-bookmark-o');
+        assert.dom('[data-test-bookmarks-button] svg').hasClass('fa-bookmark');
 
         // Bookmark registration
         await triggerEvent('[data-test-bookmarks-button]', 'mouseenter');
@@ -106,7 +131,7 @@ module('Registries | Acceptance | overview.topbar', hooks => {
         );
 
         await click('[data-test-bookmarks-button]');
-        assert.dom('[data-test-bookmarks-button] i').hasClass('fa-bookmark');
+        assert.dom('[data-test-bookmarks-button] svg').hasClass('fa-bookmark');
 
         bookmarksColl.reload();
         assert.ok(bookmarksColl.linkedRegistrationIds.includes(reg.id));
@@ -118,7 +143,7 @@ module('Registries | Acceptance | overview.topbar', hooks => {
         );
 
         await click('[data-test-bookmarks-button]');
-        assert.dom('[data-test-bookmarks-button] i').hasClass('fa-bookmark-o');
+        assert.dom('[data-test-bookmarks-button] svg').hasClass('fa-bookmark');
 
         bookmarksColl.reload();
         assert.notOk(bookmarksColl.linkedRegistrationIds.includes(reg.id));
@@ -180,7 +205,6 @@ module('Registries | Acceptance | overview.topbar', hooks => {
                 registrationSchema: server.schema.registrationSchemas.find('prereg_challenge'),
                 currentUserPermissions: Object.values(Permission),
             }, stateInfo.trait);
-
             await visit(`/${reg.id}/`);
 
             assert.dom('[data-test-state-button]').hasText(t(`registries.overview.${state}.text`).toString());
@@ -192,7 +216,7 @@ module('Registries | Acceptance | overview.topbar', hooks => {
             if (stateInfo.hasAdminActions) {
                 assert.dom('[data-test-state-admin-actions]').isVisible();
             }
-
+            assert.dom('[data-test-state-description-short]').exists();
             assert.dom('[data-test-state-description-short]').hasText(
                 t(`registries.overview.${state}.short_description`).toString(),
             );
@@ -210,4 +234,59 @@ module('Registries | Acceptance | overview.topbar', hooks => {
             assert.dom('[data-test-state-icon]').hasClass(`fa-${stateInfo.icon}`);
         }
     });
+
+    test('non-moderators cannot see moderator top-bar',
+        async assert => {
+            const reg = server.create('registration', {
+                currentUserPermissions: Object.values(Permission),
+                provider: server.create('registration-provider'),
+            });
+
+            await visit(`/${reg.id}?mode=moderator`);
+            assert.dom('[data-test-moderation-dropdown-button]')
+                .doesNotExist('non-moderators do not have access to moderator dropdown');
+            assert.dom('[data-test-topbar-share-bookmark-fork]')
+                .exists('moderator dropdown defaults to the bookmark and fork buttons for non-mods');
+        });
+
+    test('moderator does not see decision dropdown in standard view mode',
+        async assert => {
+            server.create('user', 'loggedIn');
+            const reg = server.create('registration', {
+                provider: server.create('registration-provider', 'currentUserIsModerator'),
+            });
+            await visit(`/${reg.id}`);
+            assert.dom('[data-test-moderation-dropdown-button]')
+                .doesNotExist('moderator action dropdown not shown in standard mode');
+            assert.dom('[data-test-topbar-share-bookmark-fork]')
+                .exists('moderators can see bookmark and fork buttons in standard mode');
+        });
+
+    test('moderators can see dropdown to make decision on public registration',
+        async assert => {
+            server.create('user', 'loggedIn');
+            const reg = server.create('registration', {
+                provider: server.create('registration-provider', 'currentUserIsModerator'),
+                reviewsState: RegistrationReviewStates.Accepted,
+            }, 'withReviewActions');
+            await visit(`/${reg.id}?mode=moderator`);
+            assert.dom('[data-test-moderation-dropdown-button]')
+                .exists('moderator action dropdown exists');
+            assert.dom('[data-test-topbar-share-bookmark-fork]')
+                .doesNotExist('bookmark and fork buttons are hidden in moderator mode');
+
+            await click('[data-test-moderation-dropdown-button]');
+            await percySnapshot(assert);
+            assert.dom('[data-test-registration-list-card-latest-action]')
+                .exists('latest action is shown');
+            assert.dom('[data-test-registration-card-toggle-actions]')
+                .exists('dropdown for review actions exist');
+            assert.dom('[data-test-moderation-dropdown-decision-checkbox]')
+                .exists({ count: 1 }, 'only one option for moderator action for public registrations');
+            assert.dom('[data-test-moderation-dropdown-decision-checkbox=force_withdraw]')
+                .exists('checkbox to force withdraw shown for public registrations');
+            assert.dom('[data-test-moderation-dropdown-comment]').exists('comment box shown');
+            assert.dom('[data-test-moderation-dropdown-submit]')
+                .isDisabled('submit button exists and is disabled before selection');
+        });
 });

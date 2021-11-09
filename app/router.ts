@@ -6,13 +6,11 @@ import Ember from 'ember';
 import config from 'ember-get-config';
 
 import { Blocker } from 'ember-osf-web/services/ready';
-import scrollTo from 'ember-osf-web/utils/scroll-to';
 import transitionTargetURL from 'ember-osf-web/utils/transition-target-url';
 
 const {
     engines: {
         collections,
-        handbook,
         registries,
     },
     featureFlagNames: {
@@ -20,6 +18,7 @@ const {
     },
 } = config;
 
+/* eslint-disable ember/no-get */
 const Router = EmberRouter.extend({
     currentUser: service('current-user'),
     features: service('features'),
@@ -47,7 +46,9 @@ const Router = EmberRouter.extend({
         this.get('statusMessages').updateMessages();
 
         if (this.shouldScrollTop) {
-            scrollTo(getOwner(this), 0);
+            const { application: { rootElement: rootElementSelector } } = getOwner(this);
+            const rootElement = document.querySelector(rootElementSelector);
+            rootElement.scrollIntoView();
         }
 
         if (this.readyBlocker && !this.readyBlocker.isDone()) {
@@ -89,6 +90,7 @@ const Router = EmberRouter.extend({
         return transition;
     },
 });
+/* eslint-enable ember/no-get */
 
 /* eslint-disable array-callback-return */
 
@@ -126,10 +128,6 @@ Router.map(function() {
 
     if (collections.enabled) {
         this.mount('collections');
-    }
-
-    if (handbook.enabled) {
-        this.mount('handbook');
     }
 
     if (registries.enabled) {
@@ -178,6 +176,7 @@ Router.map(function() {
 
     // Error routes
     this.route('error-no-api', { path: '*no_api_path' });
+    // eslint-disable-next-line ember/no-shadow-route-definition
     this.route('not-found', { path: '*path' });
 });
 

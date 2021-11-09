@@ -2,11 +2,11 @@
     <BsDropdown
         data-test-auth-dropdown
         local-class='DropdownContainer'
-        @tagName='li'
-        @classNames='dropdown secondary-nav-dropdown'
+        class='secondary-nav-dropdown'
+        @htmlTag='li'
         as |dd|
     >
-        <dd.toggle data-test-auth-dropdown-toggle @classNames='btn-link'>
+        <dd.toggle data-test-auth-dropdown-toggle class='btn-link'>
             <div class='osf-profile-image'>
                 <img src='{{this.user.profileImage}}&s=25' alt='{{t 'auth_dropdown.user_gravatar'}}'>
             </div>
@@ -31,8 +31,18 @@
                     data-analytics-name='MyProfile'
                     @href={{this.profileURL}}
                 >
-                    <i class='fa fa-user fa-lg p-r-xs'></i>
+                    <FaIcon @icon='user' class='fa-lg p-r-xs' />
                     {{t 'auth_dropdown.my_profile'}}
+                </OsfLink>
+            </ddm.item>
+            <ddm.item role='menuitem'>
+                <OsfLink
+                    data-test-ad-support
+                    data-analytics-name='Support'
+                    @route='support'
+                >
+                    <FaIcon @icon='life-ring' class='fa-lg p-r-xs' />
+                    {{t 'auth_dropdown.osf_support'}}
                 </OsfLink>
             </ddm.item>
             <ddm.item role='menuitem'>
@@ -41,7 +51,7 @@
                     data-analytics-name='Settings'
                     @href={{this.settingsURL}}
                 >
-                    <i class='fa fa-cog fa-lg p-r-xs'></i>
+                    <FaIcon @icon='cog' class='fa-lg p-r-xs' />
                     {{t 'general.settings'}}
                 </OsfLink>
             </ddm.item>
@@ -49,7 +59,7 @@
                 <ddm.item role='menuitem'>
                     {{#if this.replaceGlobalSupportUrl}}
                         <a href='{{this.globalSupportURL}}' onclick={{action '_onLinkClicked' 'Navbar - Support'}} target='{{this.globalSupportTarget}}'>
-                            <i class='fa fa-life-ring fa-lg p-r-xs'></i>
+                            <FaIcon @icon='life-ring' class='fa-lg p-r-xs' />
                             {{t 'auth_dropdown.osf_support'}}
                         </a>
                     {{else}}
@@ -58,33 +68,33 @@
                             data-analytics-name='Support'
                             @route='support'
                         >
-                            <i class='fa fa-life-ring fa-lg p-r-xs'></i>
+                            <FaIcon @icon='life-ring' class='fa-lg p-r-xs' />
                             {{t 'auth_dropdown.osf_support'}}
                         </OsfLink>
                     {{/if}}
                 </ddm.item>
             {{/if}}
             <ddm.item role='menuitem'>
-                <OsfButton
+                <BsButton
                     data-test-ad-logout
                     data-analytics-name='Logout'
                     class='logoutLink'
                     @type='link'
-                    @onClick={{action 'logout'}}
+                    @onClick={{action this.currentUser.logout}}
                 >
-                    <i class='fa fa-sign-out fa-lg p-r-xs'></i>
+                    <FaIcon @icon='sign-out-alt' class='fa-lg p-r-xs' />
                     {{t 'auth_dropdown.log_out'}}
-                </OsfButton>
+                </BsButton>
             </ddm.item>
         </dd.menu>
     </BsDropdown>
 {{else}}
     <li class='sign-in'>
-        <div>
+        <div class='button-container'>
             {{#if this.useNavSignUp}}
                 <OsfLink
                     data-test-ad-sign-up-button
-                    data-analytics-name='SignUp'
+                    data-analytics-name='SignUp {{@campaign}}'
                     class='btn btn-success btn-top-signup m-l-sm m-r-xs'
                     @route='register'
                     @queryParams={{this.signUpQueryParams}}
@@ -93,7 +103,7 @@
                 </OsfLink>
             {{/if}}
             {{#if (not this.useNavEmbeddedDS)}}
-                <OsfButton
+                <BsButton
                     data-test-sign-in-button
                     data-analytics-name='SignIn'
                     class='btn-top-login'
@@ -102,7 +112,7 @@
                     @type='info'
                 >
                     {{t 'auth_dropdown.sign_in'}}
-                </OsfButton>
+                </BsButton>
             {{else}}
                 <div id='embDS' />
                 {{embedded-ds 'embDS'}}

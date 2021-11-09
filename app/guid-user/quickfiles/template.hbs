@@ -1,4 +1,4 @@
-{{title (t 'quickfiles.title' user-name=this.user.fullName)}}
+{{page-title (t 'quickfiles.title' userName=this.user.fullName)}}
 <div
     data-analytics-scope='Quick files'
     class='container'
@@ -8,7 +8,7 @@
         {{#if this.canEdit}}
             <h5><i>{{t 'quickfiles.description' htmlSafe=true}}</i></h5>
         {{else}}
-            <div style='height: 14px;'></div>
+            <div local-class='EmptyDiv'></div>
         {{/if}}
         <FileBrowser
             @user={{this.user}}
@@ -27,5 +27,3 @@
         />
     </div>
 </div>
-
-<FeedbackButton @text={{t 'quickfiles.feedback_dialog_text'}} @pageName={{this.pageName}} />

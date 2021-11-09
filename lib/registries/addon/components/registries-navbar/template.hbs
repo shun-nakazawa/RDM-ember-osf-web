@@ -5,17 +5,21 @@
     as |nav|
 >
     <nav.container>
-        {{! Left Side (Band, Service Dropdown) }}
         <nav.section data-test-left>
-
             <OsfLink
                 data-test-brand
                 data-analytics-name='Brand'
-                @route='home'
-                local-class='Logo'
+                @route='{{if @provider 'registries.branded.discover' 'registries.discover'}}'
+                @models={{if @provider (array @provider.id)}}
                 aria-label={{t 'navbar.go_home'}}
-            />
-
+                local-class='Brand'
+            >
+                <span local-class='Logo'></span>
+                {{#if this.shouldShowProviderName}}
+                    <span data-test-brand-link local-class='HomeLink'>{{this.provider.name}}</span>
+                {{/if}}
+            </OsfLink>
+            {{! Left Side (Band, Service Dropdown) }}
             <BsDropdown
                 data-test-service-list
                 data-analytics-scope='Services dropdown'
@@ -24,10 +28,10 @@
                 <dropdown.toggle
                     data-test-service
                     data-analytics-name='Toggle'
-                    @classNames={{local-class 'Service Dropdown'}}
+                    local-class='Service Dropdown'
                 >
-                    <span>{{t 'general.OSF' title=this.title}}</span>
-                    <strong>{{t 'general.services.registries'}}</strong>
+                    <span local-class='HideOnMobile HideOnTablet'>{{t 'general.OSF' title=this.title}}</span>
+                    <strong local-class='HideOnMobile HideOnTablet'>{{t 'general.services.registries'}}</strong>
                     {{nav.icon (if dropdown.isOpen 'caret-up' 'caret-down')}}
                 </dropdown.toggle>
 
@@ -49,24 +53,69 @@
                     {{/each}}
                 </dropdown.menu>
             </BsDropdown>
-
         </nav.section>
 
         {{! Right Side (Search, Buttons, Gravatar, Dropdown) }}
         <nav.section data-test-right>
-
-            <nav.item
-                data-test-search-bar='1'
-                @classNames={{local-class 'HideOnMobile SearchBar'}}
+            {{#if this.provider.currentUserCanReview}}
+                <nav.links.secondary
+                    data-test-my-reviewing-button
+                    data-analytics-name='Go to moderation view'
+                    local-class='SecondaryNavLinkButton HideOnMobile'
+                    @route='registries.branded.moderation'
+                    @models={{array this.providerId}}
+                >
+                    {{t 'navbar.moderation'}}
+                </nav.links.secondary>
+                <nav.links.secondary
+                    data-test-my-reviewing-button
+                    data-analytics-name='Go to moderation view'
+                    local-class='SecondaryNavLinkButton OnlyOnMobile'
+                    aria-label={{t 'navbar.moderation'}}
+                    @route='registries.branded.moderation'
+                    @models={{array this.providerId}}
+                >
+                    <FaIcon @icon='clipboard-check' @size='2x' />
+                </nav.links.secondary>
+            {{/if}}
+            {{#if this.showAddRegistrationButton}}
+                <nav.links.secondary
+                    data-test-add-new-button
+                    data-analytics-name='Create new registration'
+                    local-class='SecondaryNavLinkButton HideOnMobile'
+                    @route='registries.branded.new'
+                    @models={{array this.providerId}}
+                >
+                    {{t 'navbar.add_registration'}}
+                </nav.links.secondary>
+                <nav.links.secondary
+                    data-test-add-new-button
+                    data-analytics-name='Create new registration'
+                    local-class='SecondaryNavLinkButton OnlyOnMobile'
+                    aria-label={{t 'navbar.add_registration'}}
+                    @route='registries.branded.new'
+                    @models={{array this.providerId}}
+                >
+                    <FaIcon @icon='plus' @size='2x' />
+                </nav.links.secondary>
+            {{/if}}
+            <nav.links.secondary
+                data-test-add-new-button
+                data-analytics-name='Go to my registrations'
+                local-class='SecondaryNavLinkButton HideOnMobile'
+                @route='registries.my-registrations'
             >
-                <IconInput
-                    data-analytics-name='Search box'
-                    @ariaLabel={{t 'navbar.search_bar'}}
-                    @icon='search'
-                    @dark={{true}}
-                    @enter={{action '_onSearch'}}
-                />
-            </nav.item>
+                {{t 'navbar.my_registrations'}}
+            </nav.links.secondary>
+            <nav.links.secondary
+                data-test-add-new-button
+                data-analytics-name='Go to my registrations'
+                aria-label={{t 'navbar.my_registrations'}}
+                local-class='SecondaryNavLinkButton OnlyOnMobile'
+                @route='registries.my-registrations'
+            >
+                <FaIcon @icon='file-alt' @size='2x' />
+            </nav.links.secondary>
 
             <nav.links.secondary
                 data-test-help='1'
@@ -88,11 +137,11 @@
 
             {{#unless this.session.isAuthenticated}}
 
-                <nav.divider @classNames={{local-class 'HideOnMobile'}} />
+                <nav.divider local-class='HideOnMobile' />
 
                 <nav.links.secondary
                     data-test-join='1'
-                    data-analytics-name='Sign up'
+                    data-analytics-name='Sign up {{@campaign}}'
                     @route='register'
                     @queryParams={{this.signUpQueryParams}}
                     local-class='HideOnMobile'
@@ -103,8 +152,8 @@
                 <nav.buttons.secondary
                     data-test-login='1'
                     data-analytics-name='Sign in'
+                    local-class='HideOnMobile'
                     @onclick={{action 'login'}}
-                    @classNames={{local-class 'HideOnMobile'}}
                 >
                     {{t 'navbar.login'}}
                 </nav.buttons.secondary>
@@ -119,6 +168,7 @@
                 <dropdown.toggle
                     data-analytics-name='Toggle'
                     local-class='Dropdown'
+                    aria-label={{t 'auth_dropdown.toggle_auth_dropdown'}}
                 >
                     {{#if this.session.isAuthenticated}}
                         <img
@@ -129,12 +179,12 @@
                         >
                         {{nav.icon (if dropdown.isOpen 'caret-up' 'caret-down')}}
                     {{else}}
-                        <OsfButton
+                        <BsButton
                             data-test-toggle-navbar
-                            @class={{local-class 'OnlyOnMobile'}}
+                            local-class='OnlyOnMobile'
                         >
                             {{nav.icon (if dropdown.isOpen 'times' 'bars')}}
-                        </OsfButton>
+                        </BsButton>
                     {{/if}}
                 </dropdown.toggle>
 
@@ -152,6 +202,16 @@
                             >
                                 <FaIcon @icon='user' @fixedWidth={{true}} />
                                 {{t 'auth_dropdown.my_profile'}}
+                            </OsfLink>
+                        </menu.item>
+                        <menu.item role='menuitem'>
+                            <OsfLink
+                                data-test-ad-support
+                                data-analytics-name='Support'
+                                @route='support'
+                            >
+                                <FaIcon @icon='life-ring' @prefix='far' @fixedWidth={{true}} />
+                                {{t 'auth_dropdown.osf_support'}}
                             </OsfLink>
                         </menu.item>
                         <menu.item role='menuitem'>
@@ -178,7 +238,7 @@
                         <menu.item role='menuitem' local-class='OnlyOnMobile'>
                             <OsfLink
                                 data-test-join-mobile
-                                data-analytics-name='Sign up'
+                                data-analytics-name='Sign up {{@campaign}}'
                                 @route='register'
                                 @queryParams={{this.signUpQueryParams}}
                             >
@@ -187,15 +247,15 @@
                             </OsfLink>
                         </menu.item>
                         <menu.item role='menuitem' local-class='OnlyOnMobile'>
-                            <OsfButton
+                            <BsButton
                                 data-test-login-mobile
                                 data-analytics-name='Sign in'
                                 @type='link'
                                 @onClick={{action 'login'}}
                             >
-                                <FaIcon @icon='sign-in' @fixedWidth={{true}} />
+                                <FaIcon @icon='sign-in-alt' @fixedWidth={{true}} />
                                 {{t 'navbar.login'}}
-                            </OsfButton>
+                            </BsButton>
                         </menu.item>
                     {{/if}}
 
@@ -205,7 +265,7 @@
                             data-analytics-name='Donate'
                             @href={{this.donateRoute}}
                         >
-                            <FaIcon @icon='usd' @fixedWidth={{true}} />
+                            <FaIcon @icon='dollar-sign' @fixedWidth={{true}} />
                             {{t 'navbar.donate'}}
                         </OsfLink>
                     </menu.item>
@@ -222,15 +282,15 @@
 
                     {{#if this.session.isAuthenticated}}
                         <menu.item role='menuitem'>
-                            <OsfButton
+                            <BsButton
                                 data-test-ad-logout
                                 data-analytics-name='Logout'
                                 @type='link'
-                                @onClick={{action 'logout'}}
+                                @onClick={{action this.currentUser.logout}}
                             >
-                                <FaIcon @icon='sign-out' @fixedWidth={{true}} />
+                                <FaIcon @icon='sign-out-alt' @fixedWidth={{true}} />
                                 {{t 'auth_dropdown.log_out'}}
-                            </OsfButton>
+                            </BsButton>
                         </menu.item>
                     {{/if}}
                 </dropdown.menu>
@@ -238,18 +298,3 @@
         </nav.section>
     </nav.container>
 </Navbar>
-
-{{#if (media 'isMobile')}}
-    <Container
-        data-test-search-bar-mobile='1'
-        local-class='SearchDropdown'
-    >
-        <IconInput
-            data-analytics-name='Search box'
-            @ariaLabel={{t 'navbar.search_bar'}}
-            @icon='search'
-            @dark={{true}}
-            @enter={{action '_onSearch'}}
-        />
-    </Container>
-{{/if}}

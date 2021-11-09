@@ -35,6 +35,7 @@ general:
     view: View
     edit: Edit
     cancel: Cancel
+    add: Add
     ok: OK
     revisions: Revisions
     md5: MD5
@@ -64,6 +65,7 @@ general:
     save: Save
     ellipsis: …
     warning: Warning
+    caution: Caution
     sort_asc: 'Sort ascending'
     sort_desc: 'Sort descending'
     last_modified: 'Last modified'
@@ -112,9 +114,8 @@ maintenance:
     line2: 'Thank you for your patience.'
     title: 'Notice:'
 quickfiles:
-    title: '{user-name}''s Quick Files'
+    title: '{userName}''s Quick Files'
     description: 'Files uploaded here are <b>publicly accessible</b> and easy to share with others using the share link.'
-    feedback_dialog_text: 'Tell us what you think of Quick Files'
     transition_auth: 'You must be logged in to view your Quick Files. Redirecting to the login page.'
     share_by_email: 'Share by email'
 feedback:
@@ -129,7 +130,7 @@ feedback:
 file_detail:
     version:
         id: 'Version ID'
-        title: '(Version: {version-number})'
+        title: '(Version: {versionNumber})'
     embed:
         dynamic: 'Dynamically render iframe with JavaScript'
         direct: 'Direct iframe with fixed height and width'
@@ -137,7 +138,7 @@ file_detail:
     toggle: 'Toggle view:'
     delete_file:
         question: 'Delete file?'
-        confirm: 'Are you sure you want to delete <b>{file-name}</b>?'
+        confirm: 'Are you sure you want to delete <b>{fileName}</b>?'
     sha2_description: 'SHA-2 is a cryptographic hash function designed by the NSA used to verify data integrity.'
     md5_description: 'MD5 is an algorithm used to verify data integrity.'
     delete_success: 'File deleted'
@@ -263,8 +264,12 @@ move_to_project:
     no_longer_public_warning:
         project: 'Files moved to private projects will no longer be public or discoverable by others.'
         component: 'Files moved to private components will no longer be public or discoverable by others.'
+    storage_limit:
+        warning: 'This project is approaching its storage cap.'
+        learn_more: '<a href "https://help.osf.io/hc/en-us/articles/360054528874-OSF-Storage-Caps" data-analytics-name="Learn about storage caps">Learn more about storage limits</a>.'
     file_successfully_moved: 'File was moved successfully!'
     could_not_move_file: 'Could not move file.'
+    storage_error: 'This file cannot be added to this project/component because it has exceeded the storage limit for OSF Storage.'
     keep_working_here: 'Keep working here'
     go_to_new_project: 'Go to new project'
     go_to_component: 'Go to component'
@@ -272,6 +277,8 @@ move_to_project:
 navbar:
     add: Add
     # add_a_preprint: 'Add a {preprintWords.preprint}'
+    add_registration: 'Add New'
+    moderation: 'Moderation'
     browse: Browse
     cancel_search: 'Cancel search'
     donate: Donate
@@ -533,6 +540,7 @@ validationErrors:
     mustSelect: 'You must select a value for this field.'
     mustSelectMinOne: 'You must select at least one value for this field.'
     mustSelectFileMinOne: 'You must select at least one file for this field.'
+    missingFileNoProject: 'The {numOfFiles, plural, =1 {file} other {files}} "{missingFilesList}" cannot be found.'
     onlyProjectOrComponentFiles: 'The {numOfFiles, plural, =1 {file} other {files}} "{missingFilesList}" cannot be found on this {projectOrComponent}.'
     new_folder_name: 'Folder name must not be blank.'
     year_format: 'Please specify a valid year.'
@@ -561,6 +569,14 @@ status:
     registration_archiving: 'Files are being copied to the newly created registration, and you will receive an email notification when the copying is finished.'
     registration_submitted: 'Your submission has been received. You will be notified within two business days regarding the status of your submission. If you have questions you may contact us at prereg@cos.io.'
     redirected_to_registrations: 'You have been redirected to the project''s registrations page. From here you can initiate a new Draft Registration to complete the registration process.'
+    registration_approved: 'Your registration approval has been accepted.'
+    registration_rejected: 'Your disapproval has been accepted and the registration has been cancelled.'
+    embargo_approved: 'Your embargo approval has been accepted.'
+    embargo_rejected: 'Your disapproval has been accepted and the embargo has been cancelled.'
+    embargo_termination_approved: 'Your approval to make this embargo public has been accepted.'
+    embargo_termination_rejected: 'Your disapproval has been accepted and this embargo will not be made public.'
+    retraction_approved: 'Your withdrawal approval has been accepted.'
+    retraction_rejected: 'Your disapproval has been accepted and the withdrawal has been cancelled.'
 dropzone_widget:
     drop_files: 'Drop files here to upload'
     error_multiple_files: 'Cannot upload multiple files'
@@ -574,7 +590,7 @@ join_osf:
 node_card:
     generic:
         private_tooltip: 'This project is private'
-        timestamp_label: ""
+        timestamp_label: 'Created:'
     fork:
         private_tooltip: 'This fork is private'
         timestamp_label: 'Forked:'
@@ -583,15 +599,24 @@ node_card:
         private_tooltip: 'This registration is private'
         timestamp_label: 'Registered:'
         statuses:
-            pending: 'Pending registration'
-            withdrawn: Withdrawn
-            pending_withdrawl: 'Pending withdrawal'
-            embargoed: Embargoed
-            pending_embargo: 'Pending embargo'
+            pending_registration_approval: 'Pending registration'
+            pending_embargo_approval: 'Pending embargo'
+            pending: 'Pending moderation'
+            embargo: Embargoed
+            rejected: 'Rejected'
             pending_embargo_termination: 'Pending embargo termination'
+            pending_withdraw_request: 'Pending withdrawal'
+            pending_withdraw: 'Pending withdrawal moderation'
+            withdrawn: Withdrawn
             archiving: Archiving
     tags: 'Tags:'
+    registration_template: 'Registration template:'
+    contributors: 'Contributors:'
+    description: 'Description:'
+    last_updated: 'Last updated:'
+    registry: 'Registry:'
     options: Options
+    view: 'View'
 forks:
     fork: Fork
     title: Forks
@@ -611,7 +636,7 @@ node:
     registrations:
         new_registration_modal:
             title: Register
-            info: 'Registration creates a frozen version of the project. Your original project remains editable and will have the registration linked. Things to know about registration:<ul><li><strong>Registrations cannot be edited or deleted.</strong></li><li>Withdrawing a registration removes its contents, but leaves behind basic metadata: title, contributors, date registered, date withdrawn, and justification (if provided).</li><li>Registrations can be public or embargoed for up to four years. Embargoed registrations will be made public automatically when the embargo expires.</li></ul>Continue your registration by selecting a registration form:'
+            info: 'Registration creates a frozen version of the project. Your original project remains editable and will have the registration linked. Things to know about registration:<ul><li><strong>Registrations cannot be edited or deleted.</strong></li><li>Withdrawing a registration removes its contents, but leaves behind basic metadata: title, contributors, date registered, date withdrawn, and justification (if provided).</li><li>Registrations can be public or embargoed for up to four years. Embargoed registrations will be made public automatically when the embargo expires.</li><li>Registrations are archived on Internet Archive and a link to the archived copy will be added to the registration metadata.</li></ul>Continue your registration by selecting a registration form:'
             create: 'Create draft'
         prereg_modal:
             title: 'Preregistration Challenge'
@@ -654,6 +679,7 @@ institutions:
     contact_us: 'Contact us'
     title: Institutions
     search_placeholder: 'Search institutions'
+    load_more: 'Load more institutions'
     dashboard:
         title: '{institutionName} Dashboard'
         last_update: 'Updated every 24 hours'
@@ -685,10 +711,34 @@ list:
 contributor_list:
     x_more: '{x} more'
     anonymous: 'Anonymous contributors'
+    more: 'Load more contributors'
+    remove_contributor:
+        confirm_remove:
+            title: 'Remove me'
+            body: 'Are you sure you want to remove yourself as a contributor on this draft registration?'
+            button: 'Remove me'
+        button_label: 'Remove me'
+        success: 'You have successfully removed yourself as a contributor.'
+        error: 'Could not remove you from this draft registration. Please refresh the page and try again. If the issue persists, please contact support at <a href="mailto:{supportEmail}">{supportEmail}</a>.'
+
+    unregistered_contributor:
+        tooltip_message: 'Is this you? Click to claim.'
+        loggedInClaimHeader: 'Claim as {email}?'
+        loggedInClaimMain: 'If you claim this account, a contributor of this registration will be emailed to confirm your identity.'
+        loggedOutClaimHeader: 'Claim this user ({userFullName})?'
+        enterEmail: 'Enter email to claim account'
+        emailPlaceholder: 'Email address'
+        claim: Claim
+        popover_title: 'Claim contributor'
+        toast_error_title: 'Error in claiming contributor'
+        userLabel: '{user}. Claim this user?'
 app_components:
     branded_navbar:
         my_osf_projects: 'My GakuNin RDM Projects'
         on_the_osf: 'On the GakuNin RDM:'
+    brand_color_inputs:
+        primary_label: 'Brand Primary Color'
+        primary_set: 'Set Primary Color'
     error_page:
         email_message: 'If this should not have occurred and the issue persists, please report it to'
         go_to: 'Go to {brand}'
@@ -713,9 +763,9 @@ app_components:
             permissions: Permissions
             permissions_popover_title: 'Permission Information'
             permissions_popover: "\n                    <dl>\n                        <dt>Read</dt>\n                        <dd>\n                            <ul>\n                                <li>View project</li>\n                            </ul>\n                        </dd>\n                        <dt>Read + Write</dt>\n                        <dd>\n                            <ul>\n                                <li>Read privileges</li>\n                                <li>Add and configure project</li>\n                                <li>Add and edit content</li>\n                            </ul>\n                        </dd>\n                        <dt>Administrator</dt>\n                        <dd>\n                            <ul>\n                                <li>Read and write privileges</li>\n                                <li>Manage contributors</li>\n                                <li>Public-private settings</li>\n                            </ul>\n                        </dd>\n                    </dl>\n                "
-            citation: Citiation
+            citation: Citation
             citation_popover_title: 'Citation Information'
-            citation_popover: 'Only checked contribotrs will be included in project citations. Contributors not in the citation can read and modify the project as normal.'
+            citation_popover: 'Only checked contributors will be included in project citations. Contributors not in the citation can read and modify the project as normal.'
             remove_contributor_success: 'Project contributor removed!'
             remove_contributor_error: 'Could not remove contributor.'
             item:
@@ -749,6 +799,7 @@ app_components:
                 add: Add
             add_contributor_success: 'Project contributor added!'
             add_contributor_error: 'Could not add contributor.'
+            perform_search: 'Perform search'
     project_metadata:
         field_title_label: 'Title:'
         field_title_placeholder: ""
@@ -828,7 +879,10 @@ app_components:
         helpDescription: 'This gives you many options, but can be very simple as well. Examples of valid searches include:'
     search_paginator:
         prev: «
+        prev_aria: 'Go to previous page'
         next: »
+        next_aria: 'Go to next page'
+        go_to: 'Go to page {page}'
     submit_section:
         discard: 'Discard changes'
         save: 'Save and continue'
@@ -866,6 +920,8 @@ collections:
             issue: Issue
             program_area: 'Program Area'
             volume: Volume
+            study_design: 'Study Design'
+            school_type: 'School Type'
     collections_submission:
         title: Submit
         add_header: 'Add to Collection'
@@ -904,6 +960,8 @@ collections:
         program_area_label: 'Program Area:'
         status_label: 'Status:'
         volume_label: 'Volume:'
+        study_design_label: 'Study Design:'
+        school_type_label: 'School Type:'
     collection_search_result:
         expand: 'Expand search result'
         collapse: 'Collapse search result'
@@ -916,6 +974,8 @@ collections:
             remove_status: 'Remove status'
             remove_issue: 'Remove issue'
             remove_program_area: 'Remove program area'
+            remove_school_type: 'Remove school type'
+            remove_study_design: 'Remove study design'
             remove_volume: 'Remove volume'
         asOf: 'as of'
         broadenSearch: 'Try broadening your search terms'
@@ -943,35 +1003,157 @@ collections:
         type: Type
 registries:
     header:
-        search: Search
+        osf_registrations: 'OSF Registrations'
+        registrations: 'Registrations'
         search_placeholder: 'Search registrations...'
-        searchable_as_of: '{registrations} searchable registrations as of {today}'
+        search_button: 'Perform search'
+        search_label: 'Search'
+        search_help: 'Search help'
     facets:
         registration_type:
             title: 'GakuNin RDM Registration Type'
             only_available_with_osf: 'Only available with GakuNin RDM Registries'
             registration_schema_error: 'An error occurred getting registration types.'
+        subjects:
+            title: 'Subjects'
+        provider:
+            other_registries: 'Other registries'
     application:
         page_title: 'GakuNin RDM Registries'
+        main_aria: 'Registries main content'
+    branded:
+        page_title: 'Registries'
+    moderation:
+        header: Moderation
+        states:
+            accepted: Public
+            embargo: Embargo
+            rejected: Rejected
+            pending: Pending
+            withdrawn: Withdrawn
+            pendingWithdraw: 'Pending Withdrawal'
+        submissions:
+            title: Submissions
+        withdrawals:
+            title: 'Withdrawal Requests'
+        moderators:
+            title: Moderators
+            nameHeader: Name
+            permissionHeader: Permission
+            addedNewModeratorSuccess: 'Successfully added {userName} as {permission}'
+            addedNewModeratorError: 'Error adding {permission}'
+            removedModeratorSuccess: 'Successfully removed {userName}'
+            removedModeratorError: 'Error removing {permission}'
+            updatedModeratorPermissionSuccess: 'Successfully updated {userName} to {permission}'
+            updatedModeratorPermissionError: 'Error updating permission to {permission}'
+        settings:
+            title: 'Settings'
+            heading: 'Configure reviews notification preferences'
+            paragraph: 'To configure other notification preferences visit your <a href={link}>user settings</a>.'
+            bulkUpload: 'Bulk upload'
+            bulkUploadHelpText: 'Drag and drop the csv file that has the registration information to upload.'
+            dropCsvHere: 'Drop csv file here to upload'
+            uploadError: 'Upload error'
+            copyToClipboard: 'Copy to clipboard'
+            cell: 'Cell'
+            copyToClipboardSuccess: 'Successfully copied to clipboard.'
+            generalErrorMessage: 'Your file was not uploaded due to the errors listed below. Please correct the errors and try again. If you have any questions, please contact the help desk at <a href="mailto:support@osf.io">support@osf.io</a>.'
+            invalidSchemaId:
+                title: 'Invalid schema ID'
+                detail: 'The schema ID in this cell does not match with a registration template in our system. It’s likely this ID was manually edited after it was downloaded or the registration template is outdated. Contact the help desk at <a href="mailto:support@osf.io">support@osf.io</a> for the current ID or a new csv file.'
+            invalidColumnId:
+                title: 'Invalid column ID'
+                detail: 'This Column ID does not match with the ones used by this registration template. It’s likely it was manually edited after it was downloaded or the registration template is outdated. Contact the help desk at <a href="mailto:support@osf.io">support@osf.io</a> for the current ID or a new csv file. <br>Invalid IDs: {invalidIds}. <br>Missing IDs: {missingIds}.'
+            invalidProjectId:
+                title: 'Invalid project ID'
+                detail: 'This Project GUID does not exist. Check that each project’s GUID is accurate. Registrations that do not have a project should have a blank cell.'
+            invalidInstitutionName:
+                title: 'Invalid institution name'
+                detail: 'This affiliated institution name does not match our system. Check that the institution’s name is spelled correctly. <a href="https://osf.io/institutions?view_only=">Click here</a> to view a list of currently active affiliated institutions.'
+            invalidLicenseName:
+                title: 'Invalid license name'
+                detail: 'This license does not match our system. It’s likely that the license is either spelled incorrectly, is not an option in our system, or formatted incorrectly. <a href="https://help.osf.io/hc/en-us/articles/360019739014-Licensing">Click here</a> to view a list of available licenses. See section “CSV Templates” in our Moderator’s Guide for more information on formatting specific licenses.'
+            invalidSubjectName:
+                title: 'Invalid subject name'
+                detail: 'This subject does not match our system. It’s likely it is spelled incorrectly. OSF uses the <a href="https://www.bepress.com/wp-content/uploads/2016/12/Disciplines_taxonomy_2018-01.pdf">bepress taxonomy</a>. Only the word or phase after the last colon needs to be entered.'
+            invalidCategoryName:
+                title: 'Invalid category name'
+                detail: 'This category does not exist. Check that the category is spelled currently. See section “Field Formatting” in the <a href="https://drive.google.com/file/d/1FJT6Jl8kPJM95oWy5Dkueee-Sg81pz2m/view?usp=sharing">Moderator Guide</a> for a list of categories. Categories can be edited after the registration is submitted.'
+            invalidResponse:
+                title: 'Invalid response'
+                detail: 'This response is not acceptable by the system. It’s likely that this is due to misspelling or having multiple answers for a single response question. See section “Field Formatting” in the <a href="https://drive.google.com/file/d/1FJT6Jl8kPJM95oWy5Dkueee-Sg81pz2m/view?usp=sharing">Moderator Guide</a> for more information.'
+            invalidContributors:
+                title: 'Invalid format for contributors'
+                detail: 'This contributors list does not match the system’s formatting requirements. Review the required formatting in the Moderator’s Manual. Contact the help desk at <a href="mailto:support@osf.io">support@osf.io</a> if this is not the issue.'
+            missingTitle:
+                title: 'Missing title'
+                detail: 'This title is missing. Check that each registration has a title.'
+            missingDescription:
+                title: 'Missing description'
+                detail: 'This description is missing. Enter a high level summary of the registration. This summary can be edited after the registration is submitted.'
+            missingAdminContributor:
+                title: 'Missing admin contributor'
+                detail: 'This registration doesn’t include an admin contributor. A registration requires at least one admin contributor to be submitted. See section “Field Formatting” in the <a href="https://drive.google.com/file/d/1FJT6Jl8kPJM95oWy5Dkueee-Sg81pz2m/view?usp=sharing">Moderator Guide</a> for more information on formatting contributors.'
+            missingBibliographicContributor:
+                title: 'Missing bibliographic contributor'
+                detail: 'This registration doesn’t have any bibliographic contributors. Registration must have at least one bibliographic contributors. See section “Field Formatting” in the <a href="https://drive.google.com/file/d/1FJT6Jl8kPJM95oWy5Dkueee-Sg81pz2m/view?usp=sharing">Moderator Guide</a> for information on formatting contributors.'
+            missingLicenseName:
+                title: 'Missing license name'
+                detail: 'This license is missing. Check that each registration has a license.'
+            missingSubjectName:
+                title: 'Missing subject name'
+                detail: 'This subject is missing. Check that each registration has a subject.'
+            sizeExceedsLimit:
+                title: 'File size exceeds limit'
+                detail: 'The csv file exceeds the 1MB limit. Break the file into multiple files and reupload them. Contact the Help Desk at <a href="mailto:support@osf.io">support@osf.io</a> if you have any questions.'
+            bulkUploadJobExists:
+                title: 'Bulk upload job already exists'
+                detail: 'This csv file was already uploaded into the system and cannot be re-uploaded.'
+            invalidFileType:
+                title: 'Invalid file type'
+                detail: 'Only csv files can be uploaded in the system. Convert the file into the csv format and reupload the document. Contact the Help Desk at <a href="mailto:support@osf.io">support@osf.io</a> if you have any questions.'
+            uploadSuccess: 'Successfully uploaded csv file.'
+        overview:
+            title: 'Moderated Overview'
+    new:
+        provider_info: 'You are submitting to {provider}. <a href="https://help.osf.io/hc/en-us/categories/360001550953-Registrations">Click here</a> to learn more about other hosted registries.'
+        required: 'required'
+        page_title: 'New Registration'
+        page_header: 'Add New Registration'
+        step_one: 'Step 1'
+        step_two: 'Step 2'
+        step_three: 'Step 3'
+        step_one_project_heading: 'Do you have content for registration in an existing OSF project?'
+        select_schema: 'Which type of registration would you like to create?'
+        select_project: 'Which project do you want to register?'
+        component_help_text: 'If your project includes components, you can select which components to include or exclude at the end of the registration.'
+        go_to_dashboard: 'your dashboard.'
+        start_registration: 'Create draft'
+        select_project_placeholder: 'Select your project'
+        yes: 'Yes'
+        no: 'No'
     discover:
         page_title: Search
-        SHARE: SHARE
-        registrations: Registrations
+        SHARE: 'About SHARE'
+        go_to_SHARE: 'Go to SHARE'
+        registration_count: '{count, plural, =1 {# Registration} other {# Registrations}}'
         sort_by: 'Sort by'
-        powered_by: 'powered by'
         no_results: 'No results found.'
         try_broadening: 'Try broadening your search terms'
+        error_loading: 'There was an error loading registrations'
         order:
             relevance: Relevance
             modified_ascending: 'Modified Date (oldest to newest)'
             modified_descending: 'Modified Date (newest to oldest)'
         sidebar:
-            refine_your_search: 'Refine your search by'
-            clear_filters: 'Clear filters'
-            active_filters: 'Active filters'
+            refine_search: 'Refine Search'
+            remove_filter_label: 'Remove {filterName} filter'
+            provider_count: '{count, number, compact}'
         search_result:
             last_edited: 'Last edited: {date}'
             withdrawn: Withdrawn
+            toggle_result: 'Toggle result'
+            sharing_popover: 'Share registration'
         pagination:
             previous: «
             next: »
@@ -1003,6 +1185,7 @@ registries:
                 last_saved: 'Auto-saved: '
                 save_failed: 'Save failed. Unsaved changes present.'
                 failed_auto_save: 'Failed to auto-save draft registration form'
+                collaborative_edit_warning: 'Only one person is able to edit a registration draft at a time. Be sure to coordinate with any other contributors.'
             review:
                 title: 'Review registration before submitting'
                 page_label: Review
@@ -1010,6 +1193,7 @@ registries:
                 invalid_warning: 'Please address invalid or missing entries to complete registration.'
                 toggle_dropdown: 'Toggle navigation dropdown'
             register: Register
+            unable_to_fetch_children_count: 'Unable to fetch project''s components'
             submit_error: 'Unable to create a registration.'
     index:
         lead: 'The <span class="f-w-lg">open</span> registries network'
@@ -1027,15 +1211,37 @@ registries:
                     linkText2: 'requirements and road map'
                     line3: '. Input welcome!'
                 contact: 'Contact us'
+            egap: 'EGAP'
+            prereg: 'Preregistration Challenge'
         advisory:
             heading: 'Advisory Group'
             paragraph: 'Our advisory group includes leaders in registrations across disciplines'
         recent:
             title: 'Browse Registrations'
             more: 'See more'
+    my_registrations:
+        header: 'My Registrations'
+        drafts: 'Drafts'
+        submitted: 'Submitted'
+        sorted: 'Sorted by last updated'
     registration_metadata:
         add_description: 'Add description'
+        add_contributors:
+            section_heading: 'Add Contributors'
+            add_new_button: 'Add new contributors'
+            done_add_new_button: 'Done adding new contributors'
+            results_heading: 'Results'
+            search_placeholder: 'Search by name or profile information'
+            help_text: '<p>Search results will appear here. Click the + icon in each row to set permissions for that contributor.</p><p>You can perform additional searches to add more contributors. Your selections will remain listed below until you click Save.</p>'
+            search: 'Search'
+            add_unregistered_contributor: 'Add unregistered contributor'
+            error_loading: 'Error, could not load contributors'
+            no_results: 'No results found'
+            add_contributor_aria: 'Add contributor'
+            save: 'Save'
+            clear_all: 'Clear all'
         add_license: 'Add license'
+        license_help_text: 'A license tells others how they can use your work in the future and only applies to the information and files submitted with the registration. For more information, see this <a href="https://help.osf.io/hc/en-us/articles/360019739014-Licensing">article on licenses</a>.'
         affiliated_institutions: 'Affiliated institutions'
         category: Category
         choose_license: 'Choose a License'
@@ -1044,10 +1250,12 @@ registries:
         create_doi: 'Create DOI'
         date_created: 'Date created'
         date_registered: 'Date registered'
+        embargo_end_date: 'Date embargo ends'
         description: Description
         disciplines: Disciplines
         edit_field: 'Edit {field}'
         license: License
+        internet_archive_link: 'Internet Archive link'
         metadata_page_heading: 'Registration Metadata'
         metadata_page_description: 'This metadata applies only to the registration you are creating, and will not be applied to your project.'
         no_affiliated_institutions: 'No affiliated institutions'
@@ -1056,10 +1264,12 @@ registries:
         no_doi: 'No DOI assigned'
         no_license: 'No license'
         no_matches: 'No matches found'
+        no_provider_metadata: 'No metadata'
         no_publication_doi: 'No publication DOI'
         no_subjects: 'No subjects'
         no_title: 'No title'
         no_year: 'No year'
+        provider_specific_metadata: 'Registry metadata'
         publication_doi: 'Publication DOI'
         registered_from: 'Registered from'
         registration_doi: 'Registration DOI'
@@ -1076,6 +1286,9 @@ registries:
         edit_category:
             success: 'Category successfully updated.'
             error: 'Unable to save category.'
+        edit_provider_metadata:
+            success: 'Registry metadata updated.'
+            error: 'Unable to save registry metadata.'
         mint_doi:
             header: 'Are you sure you want to create a DOI for this registration?'
             text: 'A DOI is persistent and will always resolve to this page.'
@@ -1156,6 +1369,7 @@ registries:
             no_justification: 'None given'
             state: Withdrawn
         withdraw:
+            withdrawal_justification: 'Withdrawal justification'
             withdraw: 'Withdraw registration'
             withdrawal_justification_label: 'Please provide your justification for withdrawing this registration.'
             random_scientist_x: 'Type <strong>{x}</strong> below and click Withdraw Registration if you are sure you want to continue.'
@@ -1164,35 +1378,25 @@ registries:
             warning: 'Withdrawing a registration will remove its content from the GakuNin RDM, but leave basic metadata behind. The title of a withdrawn registration and its contributor list will remain, as will justification or explanation of the withdrawal, should you wish to provide it. Withdrawn registrations will be marked with a "withdrawn" tag. This action is irreversible.'
         archiving:
             currently_archiving: 'This registration is currently archiving, and no changes can be made at this time.'
-            email_support: 'If this registration has been archiving for more than 72 hours, please email <a data-analytics-name="Email support" href="mailto:{supportEmail}">{supportEmail}</a> for assistance.'
-        pending:
-            state: Pending
-            action:
-                approve: Approve
-                reject: Reject
-        public:
-            state: Public
-            text: 'Public registration'
-            short_description: Public
-            long_description: 'This public registration is a frozen, non-editable version of this <strong><a href={projectUrl}>project</a></strong>.'
-        pendingRegistration:
+            please_note: 'Please note:'
+            email_support: 'Changes to any files (1) in the projects or components being registered, (2) uploaded or selected as prompt responses, including those connected through add-ons during archiving will result in archiving failure and loss of your registration timestamp. Please do not modify your files until after you have received email confirmation of archiving completion. If this registration has been archiving for more than 72 hours, please email <a data-analytics-name="Email support" href="mailto:{supportEmail}">{supportEmail}</a> for assistance.'
+        pendingRegistrationApproval:
             text: 'Pending registration'
             short_description: 'Pending registration approval'
             long_description: 'This is a pending registration of this <strong><a href={projectUrl}>project</a></strong>, awaiting approval from project administrators. This registration will be final when all project administrators approve the registration or 48 hours pass, whichever comes first.'
-        pendingWithdrawal:
-            text: 'Public registration'
-            short_description: 'Pending withdrawal'
-            long_description: 'This registration will be withdrawn when all project administrators approve the withdrawal.'
-        pendingEmbargo:
+        pendingEmbargoApproval:
             text: 'Pending registration'
             short_description: 'Pending embargo approval'
             long_description: 'This registration is pending approval. It will be final and enter an embargo period when all project administrators approve the registration or 48 hours pass, whichever comes first. The embargo will keep the registration private until the embargo period ends.'
-        pendingEmbargoTermination:
-            text: 'Embargoed registration'
-            short_description: 'Pending embargo termination'
-            long_description: 'This registration is embargoed. It will remain private until {embargoEndDate}. A request to make this registration public is pending.'
-        embargoed:
-            state: Embargoed
+        pending:
+            text: 'Pending registration'
+            short_description: 'Pending moderator approval'
+            long_description: 'This registration is awaiting a decision by the registry moderators. An email will notify all registration contributors of the decision.'
+        accepted:
+            text: 'Public registration'
+            short_description: Public
+            long_description: 'This public registration is a frozen, non-editable version of this <strong><a href={projectUrl}>project</a></strong>.'
+        embargo:
             action: 'End embargo early'
             action_success: 'Embargo termination request successfully sent'
             action_error: 'Unable to submit embargo termination request'
@@ -1201,6 +1405,18 @@ registries:
             text: 'Embargoed registration'
             short_description: Embargoed
             long_description: 'This registration is embargoed. It will remain private until {embargoEndDate}.'
+        pendingEmbargoTermination:
+            text: 'Embargoed registration'
+            short_description: 'Pending embargo termination'
+            long_description: 'This registration is embargoed. It will remain private until {embargoEndDate}. A request to make this registration public is pending.'
+        pendingWithdrawRequest:
+            text: 'Public registration'
+            short_description: 'Pending withdraw request'
+            long_description: 'This registration will be withdrawn when all project administrators approve the withdrawal.'
+        pendingWithdraw:
+            text: 'Public registration'
+            short_description: 'Pending withdrawal moderation'
+            long_description: 'This registration is awaiting a withdrawal decision by the registry moderators. An email will notify all registration contributors of the decision.'
         bookmark:
             add:
                 text: Bookmark
@@ -1221,21 +1437,84 @@ registries:
             remove_bookmark: 'Remove bookmark'
             share: 'Share this registration'
             fork: 'Fork this registration'
+    overviewHeader:
+        needModeratorPermission: 'You do not have permission to moderate this registration.'
     partialRegistrationModal:
         title: 'Select Components'
         continueButton: Continue
         cancelButton: Cancel
         selectAll: 'Select All'
         clearAll: 'Clear All'
+        componentContributorWarning: 'Contributor changes for included components must be done on the component contributor page before submitting this registration.'
+    registrationList:
+        pending: 'No registrations pending approval have been found'
+        accepted: 'No public registrations have been found'
+        embargo: 'No embargoed registrations have been found'
+        rejected: 'No rejected registrations have been found'
+        withdrawn: 'No withdrawn registrations have been found'
+        pending_withdraw: 'No registrations found pending withdrawal'
+    reviewActionsList:
+        failedToLoadActions: 'Failed to load registration moderation history'
+        noActionsFound: 'No moderation history found for this registration'
+        hide: Hide
+        show: 'Show full history'
+    reviewAction:
+        acceptSubmission: 'Registration {action} {date} by {moderator} with no embargo'
+        acceptEmbargoSubmission: 'Registration {action} {date} by {moderator} with embargo ending {embargoEndDate}'
+        moderatorAction: 'Registration {action} {date} by moderator {moderator}'
+        contributorAction: 'Registration {action} {date} by contributor {contributor}'
+        submitActionWithoutEmbargo: 'Registration submitted {date} by contributor {contributor}'
+        submitActionWithEmbargo: 'Registration submitted {date} by contributor {contributor} with embargo ending {embargoEndDate}'
+    reviewActions:
+        triggerPastTense:
+            submit: 'submitted'
+            accept_submission: 'submission accepted'
+            reject_submission: 'submission rejected'
+            force_withdraw: 'withdrawn'
+            request_withdrawal: 'withdrawal requested'
+            accept_withdrawal: 'withdrawal request accepted'
+            reject_withdrawal: 'withdrawal request rejected'
+            request_embargo_termination: 'embargo termination requested'
     finalizeRegistrationModal:
         title: 'Almost done...'
-        notice: "Please keep in mind that:\n                <ul>\n                    <li>\n                        Registrations cannot be modified or deleted once completed.\n                    </li>\n                    <li>\n                        The content and version history of Wiki and GakuNin RDM Storage will be copied to the registration.\n                    </li>\n                    <li>\n                        This project contains links to other projects. These links will be copied into your registration, but the\n                        projects that they link to will not be registered. If you wish to register the linked projects, they must be\n                        registered separately. <a href='{learnMoreLink}' target='_blank' rel='noopener noreferrer'>Learn more about links</a>.\n                    </li>\n                </ul>"
+        notice:
+            noModerationFromProject: 'Remember:<ul><li>Registrations cannot be modified or deleted once submitted.</li><li>Changes to any files (1) in the projects or components being registered, (2) uploaded or selected as prompt responses, including those connected through add-ons during archiving will result in archiving failure and loss of your registration timestamp. Please do not modify your files until after you have received email confirmation of archiving completion. If this registration has been archiving for more than 72 hours, please email <a href="mailto:support@osf.io">support@osf.io</a> for assistance.</li><li>The content and version history of Wiki and OSF Storage will be copied to the registration.</li><li>This project may contain links to other projects. These links will be copied into your registration, but the projects that they link to will not be registered. If you wish to register the linked projects, they must be registered separately. <a href="{learnMoreLink}" target="_blank" rel="noopener noreferrer">Learn more about links</a>.</li><li>Registrations are archived on Internet Archive and a link to the archived copy will be added to the registration metadata.</li></ul>'
+            withModerationFromProject: 'Remember:<ul><li>Registrations cannot be modified or deleted once submitted.</li><li>Changes to any files (1) in the projects or components being registered, (2) uploaded or selected as prompt responses, including those connected through add-ons during archiving will result in archiving failure and loss of your registration timestamp. Please do not modify your files until after you have received email confirmation of archiving completion. If this registration has been archiving for more than 72 hours, please email <a href="mailto:support@osf.io">support@osf.io</a> for assistance.</li><li>The content and version history of Wiki and OSF Storage will be copied to the registration.</li><li>This project may contain links to other projects. These links will be copied into your registration, but the projects that they link to will not be registered. If you wish to register the linked projects, they must be registered separately. <a href="{learnMoreLink}" target="_blank" rel="noopener noreferrer">Learn more about links</a>.</li><li>A moderator must review and approve your registration before it will be made public or embargoed.</li><li>Registrations are archived on Internet Archive and a link to the archived copy will be added to the registration metadata.</li></ul>'
+            noModerationNoProject: 'Remember:<ul><li>Registrations cannot be modified or deleted once submitted.</li><li>Changes to any files uploaded or selected as prompt responses will result in archiving failure and loss of your registration timestamp. If this registration has been archiving for more than 72 hours, email <a href="mailto:support@osf.io">support@osf.io</a> for assistance.</li><li>Registrations are archived on Internet Archive and a link to the archived copy will be added to the registration metadata.</li></ul>'
+            withModerationNoProject: 'Remember:<ul><li>Registrations cannot be modified or deleted once submitted.</li><li>Changes to any files uploaded or selected as prompt responses will result in archiving failure and loss of your registration timestamp. If this registration has been archiving for more than 72 hours, email <a href="mailto:support@osf.io">support@osf.io</a> for assistance.</li><li>A moderator must review and approve your registration before it will be made public or embargoed.</li><li>Registrations are archived on Internet Archive and a link to the archived copy will be added to the registration metadata.</li></ul>'
         immediateOption: 'Make registration public immediately'
         embargoOption: 'Enter registration into embargo'
-        createDoi: 'Create DOI'
+
         submit: Submit
         back: Back
         datePlaceholder: 'Choose embargo end date'
+    sharingIcons:
+        label: 'Share this registration via {mediaType}'
+    makeDecisionDropdown:
+        makeDecision: 'Make Decision'
+        acceptSubmission: 'Accept submission'
+        acceptSubmissionDescription: 'Registration will appear in search results and be made public. Embargoed registrations will only become public after embargo end date.'
+        rejectSubmission: 'Reject submission'
+        rejectSubmissionDescription: 'Registration will not appear in search results and will return to a private draft state'
+        forceWithdraw: 'Force withdraw'
+        forceWithdrawDescription: 'Registration will be withdrawn but still have a tombstone page with a justification for withdrawal and a subset of the metadata available'
+        acceptWithdrawal: 'Accept withdrawal'
+        acceptWithdrawalDescription: 'Registration will be withdrawn but still have a tombstone page with a justification for withdrawal and subset of the metadata available'
+        rejectWithdrawal: 'Reject withdrawal'
+        rejectWithdrawalDescription: 'Registration will remain fully public'
+        submit: 'Submit'
+        success: 'Successfully submitted moderator decision.'
+        failure: 'Failed to submit moderator decision.'
+        additionalComment: 'Additional comment'
+        additionalCommentPlaceholder: 'Add remarks to registration admins'
+        justificationForWithdrawal: 'Justification for Withdrawal'
+        justificationForWithdrawalPlaceholder: 'Provide justification for withdrawal'
+        noModeratorActions: 'No moderator decisions can be made at this time'
+    myRegistrationsList:
+        noGeneral: 'This page allows you to search and quickly access your registrations.'
+        noRegistrations: "You don't have any submitted registrations. Create one with the button below."
+        noDrafts: "You don't have any draft registrations. Create one with the button below."
+        createRegistration: 'Create a registration'
 meetings:
     index:
         meetings-list:
@@ -1245,13 +1524,15 @@ meetings:
             location: Location
             date: Date
             empty: 'No results found for this search term.'
+            search: 'Search'
+
         meetings-hero-banner:
             image_alt: 'Logo for GakuNin RDM meeting'
             h3: 'A <strong>free poster and presentation sharing service</strong> for academic meetings and conferences'
             conference_organizers_h3: 'For Conference Organizers'
             conference_organizers_help_text: 'Register your event to broaden its impact. Events get a dedicated page, an easy submission process, and persistent links.'
             conference_organizers_register_button: Register
-            conference_organizers_register_panel_texts: '<p>GakuNin RDM Meetings is a product that we offer to academic conferences at no cost. To request poster and talk hosting for a conference:</p><p class=''text-center''><strong>Submit this <a href=''https://docs.google.com/forms/d/e/1FAIpQLSeBq4CfC5CjTBz49TP2dO9ZIsQc6QAAJFUoUbkS767Le9twLw/viewform''>set-up form </a></strong></p><p>We''ll review and add your conference within one business day.</p>'
+            conference_organizers_register_panel_texts: '<p>GakuNin RDM Meetings is a product that we offer to academic conferences at no cost. To request poster and talk hosting for a conference:</p><p class="text-center"><strong>Submit this <a href="https://docs.google.com/forms/d/e/1FAIpQLSeBq4CfC5CjTBz49TP2dO9ZIsQc6QAAJFUoUbkS767Le9twLw/viewform">set-up form </a></strong></p><p>We''ll review and add your conference within one business day.</p>'
             conference_participants_h3: 'For Conference Participants'
             conference_participants_help_text: 'Share your posters and presentations along with any supporting data and materials. Get persistent links and usage analytics.'
             conference_participants_upload_button: Upload
@@ -1349,10 +1630,12 @@ routes:
 osf-components:
     draft-registration-card:
         initiated_by: 'Initiated by:'
-        form_type: 'Form:'
+        form_type: 'Registration template:'
+        registry: 'Registry:'
         started: 'Started:'
         last_updated: 'Last updated:'
         review: Review
+        untitled_placeholder: '(Untitled)'
         delete_draft_confirm: 'Are you sure you want to delete this draft registration?'
     copyable-text:
         copyToClipboard: 'Copy to clipboard'
@@ -1381,6 +1664,7 @@ osf-components:
         tags: Tags
         add_tag: 'Add a tag to enhance discoverability'
         no_tags: 'No tags'
+        remove_tag: 'Remove tag'
     institutions-list:
         no_affiliated_institution:
             project: 'This project has no affiliated institutions'
@@ -1418,6 +1702,8 @@ osf-components:
             editButtonAriaLabel: 'Edit {questionLabel}'
         schema-block-renderer/editable/files:
             instructions: 'You may attach up to 5 file(s) to this question. You may attach files that you already have in GakuNin RDM Storage in this <a href={nodeUrl}>{projectOrComponent}</a> or upload (drag and drop) a new file from your computer. Uploaded files will automatically be added to this <a href={nodeUrl}>{projectOrComponent}</a> so that they can be registered. To attach files from other components or an add-on, first add them to this <a href={nodeUrl}>{projectOrComponent}</a>.'
+            instructionsNoProject: 'You may attach up to 5 file(s) to this question. Files cannot total over 5GB in size.<br><br>Uploaded files will automatically be archived in this registration. They will also be added to a related project that will be created for this registration.'
+            instructionsNoPermissions: 'This registration is branched from <a href={nodeUrl}>an OSF Project</a>, and only contributors added to it can upload and edit files. Contact one of the registration''s administrative contributors to be added to the project. Learn more about OSF Projects by visiting our <a href="https://help.osf.io/hc/en-us/categories/360001495973-Creating-and-Managing-Projects">help guides</a>.'
         schema-block-renderer/read-only/response:
             noResponse: 'No response'
         schema-block-renderer/read-only/files:
@@ -1432,6 +1718,16 @@ osf-components:
         create: Create
         folder_name_placeholder: 'New folder name'
         create_folder_failed: 'Failed to create folder'
+        insufficient_storage_error: 'This file cannot be uploaded to this project/component because it has exceeded the storage limit for OSF Storage.'
+        delete_failed: 'Failed to delete {filename}'
+        delete_success: 'Successfully deleted {filename}'
+        delete: Delete
+        confirm_delete:
+            title_file: 'Delete "{filename}"?'
+            title_folder: 'Delete "{filename}" and all its contents?'
+            body: 'This action is irreversible.'
+            button: Delete
+
     subjects:
         browse:
             browse_all: 'Browse all subjects'
@@ -1465,6 +1761,63 @@ osf-components:
         citation:
             true: 'Yes'
             false: 'No'
+        loadMore: 'Load more'
+        editPermission:
+            success: 'Contributor permission updated.'
+            error: 'Error updating contributor permission.'
+        editIsBibliographic:
+            success: 'Contributor bibliographic status updated.'
+            error: 'Error updating contributor bibliographic status.'
+        reorderContributor:
+            reorderContributor: 'Reorder contributor'
+            success: 'Contributor order updated.'
+            dragHandle: '⇕'
+        noEducation: 'No education history to show'
+        noEmployment: 'No employment history to show'
+        addContributor:
+            success: 'Contributor added'
+            errorHeading: 'Error adding contributor'
+        currentContributors: 'Current contributors'
+        email: 'Email'
+        fullName: 'Full name'
+        selectPermission: 'Select permission'
+        educationAndEmployment:
+            expand: 'Expand employment and education info'
+            collapse: 'Collapse employment and education info'
+        removeContributor:
+            confirmRemove:
+                title: 'Remove contributor'
+                body: 'Are you sure you want to remove {userName}?'
+                button: 'Remove contributor'
+            success: 'You have successfully removed {contributorName}.'
+            errorHeading: 'Could not remove contributor. '
+
+
+    subscriptions:
+        frequency:
+            daily: 'Daily'
+            instant: 'Instant'
+            none: 'None'
+        success: 'Notification frequency updated.'
+        error: 'Error updating notification frequency.'
+    moderators:
+        remove:
+            modal:
+                title: 'Confirm moderator removal'
+                body: 'Are you sure you want to remove {moderator}?'
+        add:
+            button: 'Add moderator'
+            modal:
+                heading: 'Add a moderator'
+                add: 'Add'
+                selectUser: 'Select user'
+                selectPermission: 'Select permission'
+                cancel: 'Cancel'
+                searchByName: 'Search user by name'
+                inviteByEmail: 'Invite user by email'
+                email: 'Email'
+                fullName: 'Full name'
+
 settings:
     toggleNav: 'Toggle navigation'
     profile:
@@ -1537,6 +1890,7 @@ settings:
             disableButton: Disable
             saveError: 'Could not make this change. Try again in a few minutes. If the issue persists, please report it to <a href="mailto:{supportEmail}">{supportEmail}</a>.'
             submitVerification: Enable
+            verificationCode: 'Verification code'
         title: 'Account settings'
         connected_emails:
             add_email: 'Add email'
@@ -1569,6 +1923,7 @@ settings:
             unconfirmed_emails: 'Unconfirmed emails'
             update_fail: 'Unable to update email'
             update_success: 'Email updated'
+            email_address: 'Email address'
         changePassword:
             title: 'Change password'
             updateButton: 'Update password'

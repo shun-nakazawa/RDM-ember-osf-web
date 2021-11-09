@@ -1,11 +1,13 @@
 import { capitalize } from '@ember/string';
-import { click as untrackedClick, fillIn } from '@ember/test-helpers';
-import { faker, ModelInstance } from 'ember-cli-mirage';
-import setupMirage from 'ember-cli-mirage/test-support/setup-mirage';
+import { click as untrackedClick, fillIn, settled, triggerKeyEvent } from '@ember/test-helpers';
+import { ModelInstance } from 'ember-cli-mirage';
+import { setupMirage } from 'ember-cli-mirage/test-support';
 import config from 'ember-get-config';
 import { t } from 'ember-intl/test-support';
+import { percySnapshot } from 'ember-percy';
 import { selectChoose, selectSearch } from 'ember-power-select/test-support';
 import { TestContext } from 'ember-test-helpers';
+import faker from 'faker';
 import moment from 'moment';
 import { module, test } from 'qunit';
 
@@ -67,9 +69,28 @@ module('Registries | Acceptance | overview.overview', hooks => {
         const registration = server.create('registration', {
             registrationSchema: server.schema.registrationSchemas.find('prereg_challenge'),
             embargoed: true,
+            provider: server.create('registration-provider'),
         });
 
         this.set('registration', registration);
+    });
+
+    test('Branded overview page', async assert => {
+        const brandedProvider = server.create('registration-provider', {
+            assets: {
+                favicon: 'fakelink',
+            },
+        }, 'withBrand');
+
+        const reg = server.create('registration', { provider: brandedProvider });
+
+        await visit(`/${reg.id}/`);
+        assert.ok(document.querySelector('link[rel="icon"][href="fakelink"]'));
+
+        const pageTitle = document.getElementsByTagName('title')[0].textContent;
+        assert.equal(pageTitle, `${brandedProvider.name} | ${reg.title}`);
+
+        await percySnapshot(assert);
     });
 
     test('admin can view embargoed registration',
@@ -114,7 +135,7 @@ module('Registries | Acceptance | overview.overview', hooks => {
             }
         });
 
-    test('only admin can edit registration tags', async assert => {
+    test('only write and admin can edit registration tags', async assert => {
         const tags = ['Suspendisse', 'Mauris', 'ipsum', 'facilisis'];
         const reg = server.create('registration', {
             registrationSchema: server.schema.registrationSchemas.find('prereg_challenge'),
@@ -131,6 +152,11 @@ module('Registries | Acceptance | overview.overview', hooks => {
         assert.dom('[data-test-tags-widget-tag-input="edit"] input').isVisible();
         tags.forEach(tag => assert.dom(`[data-test-tags-widget-tag="${tag}"]`).exists());
 
+        reg.update({ currentUserPermissions: [Permission.Write, Permission.Read] });
+        await visit(`/${reg.id}/`);
+
+        assert.dom('[data-test-tags-widget-tag-input="edit"] input').isVisible();
+
         reg.update({ currentUserPermissions: [Permission.Read] });
         await visit(`/${reg.id}/`);
 
@@ -139,22 +165,28 @@ module('Registries | Acceptance | overview.overview', hooks => {
         tags.forEach(tag => assert.dom(`[data-test-tags-widget-tag="${tag}"]`).exists());
     });
 
-    test('only admin can edit affiliated institutions', async assert => {
+    test('only write and admin can edit affiliated institutions', async assert => {
         const user = server.create('user', {
             institutions: server.createList('institution', 2),
         }, 'loggedIn');
 
         const reg = server.create('registration', {
             registrationSchema: server.schema.registrationSchemas.find('prereg_challenge'),
-            currentUserPermissions: [Permission.Write, Permission.Read],
+            currentUserPermissions: [Permission.Read],
         }, 'withAffiliatedInstitutions');
 
-        // Non admin: read only view
+        // Read user: read only view
         await visit(`/${reg.id}/`);
         assert.dom('[data-test-edit-button="affiliated institutions"]').isNotVisible();
         reg.affiliatedInstitutionIds.forEach(institutionId => assert
             .dom(`[data-test-institution-list-institution="${institutionId}"]`)
             .exists('registration institution list is correct'));
+
+        // Write user: editable view
+        reg.update({ currentUserPermissions: [Permission.Read, Permission.Write] });
+
+        await visit(`/${reg.id}/`);
+        assert.dom('[data-test-edit-button="affiliated institutions"]').isVisible();
 
         // Admin: editable view
         reg.update({ currentUserPermissions: Object.values(Permission) });
@@ -217,7 +249,7 @@ module('Registries | Acceptance | overview.overview', hooks => {
         ) && displayText);
         await visit(`/${reg.id}/`);
 
-        assert.dom('[data-test-toggle-anchor-nav-button]').isVisible();
+        assert.dom('[data-test-toggle-anchor-nav-button] div').isVisible();
         assert.dom('[data-test-page-anchor]').isNotVisible();
 
         await click('[data-test-toggle-anchor-nav-button]');
@@ -278,6 +310,11 @@ module('Registries | Acceptance | overview.overview', hooks => {
         assert.dom('[data-test-node-description-wrapper]').hasStyle({
             maxHeight: 'none',
         });
+
+        reg.update({ currentUserPermissions: [Permission.Write, Permission.Read] });
+        await visit(`/${reg.id}/`);
+        assert.dom('[data-test-edit-button="description"]').isVisible();
+
         reg.update({ currentUserPermissions: [] });
         await visit(`/${reg.id}/`);
         assert.dom('[data-test-edit-button="description"]').isNotVisible();
@@ -304,11 +341,17 @@ module('Registries | Acceptance | overview.overview', hooks => {
         reg.reload();
         assert.equal(reg.category, NodeCategory.Instrumentation);
 
-        // Non-admin cannot edit
-        reg.update({ currentUserPermissions: [Permission.Read, Permission.Write] });
+        // Read user cannot edit
+        reg.update({ currentUserPermissions: [Permission.Read] });
 
         await visit(`/${reg.id}/`);
         assert.dom('[data-test-edit-button="category"]').doesNotExist();
+
+        // Write user can edit
+        reg.update({ currentUserPermissions: [Permission.Read, Permission.Write] });
+
+        await visit(`/${reg.id}/`);
+        assert.dom('[data-test-edit-button="category"]').exists();
     });
 
     test('editable publication doi', async assert => {
@@ -349,8 +392,14 @@ module('Registries | Acceptance | overview.overview', hooks => {
         reg.reload();
         assert.notOk(reg.articleDoi);
 
-        // Non-admin cannot edit
-        reg.update({ currentUserPermissions: [] });
+        // Read-Write can edit
+        reg.update({ currentUserPermissions: [Permission.Write, Permission.Read] });
+
+        await visit(`/${reg.id}/`);
+        assert.dom('[data-test-edit-button="publication DOI"]').exists();
+
+        // Read-only cannot edit
+        reg.update({ currentUserPermissions: [Permission.Read] });
 
         await visit(`/${reg.id}/`);
         assert.dom('[data-test-edit-button="publication DOI"]').doesNotExist();
@@ -362,12 +411,29 @@ module('Registries | Acceptance | overview.overview', hooks => {
         });
 
         await visit(`/${reg.id}/`);
+        assert.dom('[data-test-edit-button="doi"]').doesNotExist();
         assert.dom('[data-test-create-doi]').doesNotExist();
+
+        reg.update({ currentUserPermissions: [Permission.Read] });
+        await visit(`/${reg.id}/`);
+        assert.dom('[data-test-edit-button="doi"]').doesNotExist();
+        assert.dom('[data-test-create-doi]').doesNotExist();
+
+        reg.update({ currentUserPermissions: [Permission.Write, Permission.Read] });
+        await visit(`/${reg.id}/`);
+        assert.dom('[data-test-edit-button="doi"]').doesNotExist();
+        assert.dom('[data-test-create-doi]').doesNotExist();
+
         reg.update({ currentUserPermissions: Object.values(Permission) });
         await visit(`/${reg.id}/`);
         await click('[data-test-edit-button="doi"]');
 
         assert.dom('[data-test-create-doi]').isVisible();
+
+        await click('[data-test-edit-button="doi"]');
+
+        assert.dom('[data-test-create-doi]').isVisible();
+
         assert.dom('[data-test-registration-doi]').isNotVisible();
         assert.notOk(Boolean(reg.identifierIds.length));
 
@@ -381,19 +447,146 @@ module('Registries | Acceptance | overview.overview', hooks => {
         const nonPublicReg = server.create('registration', {
             registrationSchema: server.schema.registrationSchemas.find('prereg_challenge'),
             currentUserPermissions: Object.values(Permission),
-        }, 'isEmbargoed');
+        }, 'isEmbargo');
 
         await visit(`/${nonPublicReg.id}/`);
         assert.dom('[data-test-editable-field="doi"]').doesNotExist('DOIs are only available for public registrations');
     });
 
+    test('Editable subjects', async assert => {
+        const subjects = [server.create('subject', { text: 'Candy and confection studies' }),
+            server.create('subject', { text: 'Soda and soft drink studies' })];
+        const provider = server.create('registration-provider');
+        provider.update({ subjects });
+        const reg = server.create('registration', {
+            currentUserPermissions: Object.values(Permission),
+            provider,
+        });
+
+        await visit(`/${reg.id}/`);
+
+        await click('[data-test-edit-button="subjects"]');
+        assert.dom('[data-test-subject-widget-browse-tab]').hasAttribute('aria-selected', 'true');
+        assert.dom('[data-test-selected-subject]').doesNotExist('No subjects selected');
+        assert.dom('[data-test-selected-subject-placeholder]')
+            .hasText(t('osf-components.subjects.display.placeholder'), 'Placeholder text shown');
+        assert.dom('[data-test-subject-browse-label]').exists({ count: 2 }, 'All toplevel subjects are listed');
+
+        await untrackedClick('[data-test-subject-browse-label="1"]');
+        assert.dom('[data-test-selected-subject="Candy and confection studies"]')
+            .containsText('Candy and confection studies', 'One subject selected');
+
+        await untrackedClick('[data-test-subject-widget-search-tab]');
+        assert.dom('[data-test-subject-widget-search-tab]').hasAttribute('aria-selected', 'true');
+        assert.dom('[data-test-subject-search-result-label]').doesNotExist('No search results');
+
+        await fillIn('[data-test-subject-searchbox]', 'Soda');
+        triggerKeyEvent('[data-test-subject-searchbox]', 'keyup', 'Shift');
+        await settled();
+        assert.dom('[data-test-subject-search-result-label]').exists('Search finds subjects');
+
+        await untrackedClick('[data-test-subject-search-result-checkbox="Soda and soft drink studies"]');
+        assert.dom('[data-test-selected-subject="Soda and soft drink studies"]').exists('Proper subject selected');
+        await click('[data-test-save-edits]');
+        assert.dom('[data-test-selected-subject]').exists({ count: 2 }, 'Subjects saved');
+    });
+
+    test('Editable provider metadata', async assert => {
+        server.create('user', 'loggedIn');
+
+        const regOne = server.create('registration', {
+            currentUserPermissions: Object.values(Permission),
+            provider: server.schema.registrationProviders.find('osf'),
+            providerSpecificMetadata: [
+                { field_name: 'Field 1', field_value: '' },
+                { field_name: 'Field 2', field_value: 'Value 2 &lt; &amp; &gt;' },
+            ],
+        });
+        const regTwo = server.create('registration', {
+            currentUserPermissions: [Permission.Read],
+            provider: server.create('registration-provider', 'currentUserIsModerator'),
+            providerSpecificMetadata: [
+                { field_name: 'Field 1', field_value: '' },
+                { field_name: 'Field 2', field_value: 'Value b' },
+            ],
+        });
+        const regThree = server.create('registration', {
+            currentUserPermissions: Object.values(Permission),
+            provider: server.schema.registrationProviders.find('osf'),
+        });
+        const regFour = server.create('registration', {
+            currentUserPermissions: Object.values(Permission),
+            provider: server.create('registration-provider', 'currentUserIsModerator'),
+            providerSpecificMetadata: [
+                { field_name: 'Field 1', field_value: '' },
+                { field_name: 'Field 2', field_value: '' },
+            ],
+        });
+
+        await visit(`/${regOne.id}/`);
+        assert.dom('[data-test-edit-button="metadata"]').isNotVisible('Non moderator cannot edit provider metadata');
+        assert.dom('[data-test-registration-provider-metadata-wrapper]')
+            .isVisible('Non moderator can see at least one display component');
+        assert.dom('[data-test-registration-provider-metadata-wrapper="Field 1"]')
+            .isVisible('Non moderator can see the field 1 display component');
+        assert.dom('[data-test-registration-provider-metadata-field-value="Field 1"]')
+            .doesNotContainText('Non-moderator field one starts out empty');
+        assert.dom('[data-test-registration-provider-metadata-wrapper="Field 2"]')
+            .isVisible('Non moderator can see the field 2 display component');
+        assert.dom('[data-test-registration-provider-metadata-field-value="Field 2"]')
+            .containsText('Value 2 < & >', 'Non-moderator field two has the correct value');
+
+        await visit(`/${regTwo.id}/`);
+        assert.dom('[data-test-edit-button="metadata"]').isVisible('Moderator can edit provider metadata');
+        assert.dom('[data-test-registration-provider-metadata-wrapper="Field 1"]')
+            .isVisible('Moderator can see the field 1 display component');
+        assert.dom('[data-test-registration-provider-metadata-field-value="Field 1"]')
+            .doesNotContainText('Moderator field one starts out empty');
+        assert.dom('[data-test-registration-provider-metadata-wrapper="Field 2"]')
+            .isVisible('Moderator can see the field 2 display component');
+        assert.dom('[data-test-registration-provider-metadata-field-value="Field 2"]')
+            .containsText('Value b', 'Moderator field two has the correct value');
+        assert.dom('[data-test-provider-metadata-edit-input="Field 1"]')
+            .isNotVisible('Moderator cannot yet see edit dialog box');
+        await click('[data-test-edit-button="metadata"]');
+        assert.dom('[data-test-provider-metadata-edit-input="Field 1"]')
+            .isVisible('Moderator can see edit dialog box');
+        await fillIn('[data-test-provider-metadata-edit-input="Field 1"]', 'Value 1');
+        await fillIn('[data-test-provider-metadata-edit-input="Field 2"]', 'Value 2');
+        await click('[data-test-save-edits]');
+        assert.dom('[data-test-registration-provider-metadata-field-value="Field 1"]')
+            .containsText('Value 1', 'Moderator successfully changed field 1');
+        assert.dom('[data-test-registration-provider-metadata-field-value="Field 2"]')
+            .containsText('Value 2', 'Moderator successfully changed field 2');
+        await click('[data-test-edit-button="metadata"]');
+        assert.dom('[data-test-provider-metadata-edit-input="Field 1"]')
+            .isVisible('Moderator can see edit dialog box');
+        await fillIn('[data-test-provider-metadata-edit-input="Field 1"]', 'Bad valu 1');
+        await fillIn('[data-test-provider-metadata-edit-input="Field 2"]', 'Bad valu 2');
+        await click('[data-test-discard-edits]');
+        assert.dom('[data-test-registration-provider-metadata-field-value="Field 1"]')
+            .containsText('Value 1', 'Moderator successfully discarded field 1');
+        assert.dom('[data-test-registration-provider-metadata-field-value="Field 2"]')
+            .containsText('Value 2', 'Moderator successfully discarded field 2');
+
+        await visit(`/${regThree.id}/`);
+        assert.dom('[data-test-registration-provider-metadata-wrapper]')
+            .isNotVisible('No metadata means nothing to display');
+
+        await visit(`/${regFour.id}/`);
+        assert.dom('[data-test-editable-field="metadata"]')
+            .isVisible('All empty fields still shows component');
+        assert.dom('[data-test-editable-field-provider-metadata]')
+            .containsText('No metadata', 'All empty fields means no metadata to show');
+    });
+
     test('Editable license', async assert => {
         server.loadFixtures('licenses');
-        server.loadFixtures('registration-providers');
 
         const reg = server.create('registration', {
             registrationSchema: server.schema.registrationSchemas.find('prereg_challenge'),
             currentUserPermissions: [Permission.Write, Permission.Read],
+            provider: server.schema.registrationProviders.find('osf'),
         });
 
         await visit(`/${reg.id}/`);
@@ -408,13 +601,11 @@ module('Registries | Acceptance | overview.overview', hooks => {
         await click('[data-test-edit-button="license"]');
 
         assert.dom('[data-test-license-edit-form]').isVisible();
-        await selectSearch('[data-test-power-select-dropdown]', 'MIT');
-        assert.dom('.ember-power-select-options').hasText('MIT License');
+        await selectSearch('[data-test-power-select-dropdown]', 'Mozilla');
+        assert.dom('.ember-power-select-options').hasText('Mozilla Public License 2.0');
         await selectSearch('[data-test-power-select-dropdown]', 'No');
         assert.dom('.ember-power-select-options').hasText('No license');
         await selectChoose('[data-test-power-select-dropdown]', 'No license');
-
-        await click('[data-test-save-license]');
 
         const missingFields = 'Copyright Holders';
         const validationErrorMsg = t('validationErrors.node_license_missing_fields',
@@ -427,7 +618,7 @@ module('Registries | Acceptance | overview.overview', hooks => {
         assert.equal(reg.license.name, 'No license');
         assert.equal(reg.nodeLicense!.year, new Date().getUTCFullYear().toString());
 
-        // @ts-ignore
+        // @ts-ignore: TODO: use copyrightHolders?
         assert.deepEqual(reg.nodeLicense!.copyright_holders, ['Jane Doe', 'John Doe']);
     });
 
@@ -485,5 +676,58 @@ module('Registries | Acceptance | overview.overview', hooks => {
         assert.dom(`[data-test-file-link="${fileOne.id}"]`).hasAttribute('href', `fakedomain/${fileOne.id}`);
         assert.dom(`[data-test-file-link="${fileTwo.id}"]`).hasText(fileTwo.name);
         assert.dom(`[data-test-file-link="${fileTwo.id}"]`).hasAttribute('href', `fakedomain/${fileTwo.id}`);
+    });
+
+    test('Logged out user can claim an unregistered contributor', async assert => {
+        const openEndedReg = server.schema.registrationSchemas.find('open_ended_registration');
+        const registeredFrom = server.create('node');
+
+        const reg = server.create('registration', {
+            registrationSchema: openEndedReg,
+            registeredFrom,
+        }, 'withContributors');
+        const unregContributor = server.create('contributor', { node: reg }, 'unregistered');
+
+        await visit(`/${reg.id}`);
+
+        assert.dom('[data-test-unregistered-contributor-name]').exists('unregistered contributor exists');
+        await click('[data-test-unregistered-contributor-name]');
+        await percySnapshot('Claim unregistered contributor for logged out users, no validation errors');
+        assert.dom('[data-test-modal-heading]').containsText(unregContributor.unregisteredContributor!,
+            'claim unregistered user modal header contains unregistered contributor name');
+        await fillIn('[data-test-email-input]', 'lmnop');
+        assert.dom('[data-test-validation-errors="userEmail"]')
+            .exists('validation error shows after invalid email is entered');
+        await percySnapshot('Claim unregistered contributor for logged out users, with validation errors');
+        await fillIn('[data-test-email-input]', 'lmnop@abd.xyz');
+        assert.dom('[data-test-modal-claim-button]')
+            .isEnabled('claim unregistered user modal claim button is enabled after user enters valid email');
+        await click('[data-test-modal-cancel-button]');
+        assert.dom('[data-test-modal-heading]')
+            .doesNotExist('claim unregistered user modal gone after canceling claim');
+    });
+
+    test('Logged in user can claim an unregistered contributor', async assert => {
+        const currentUser = server.create('user', 'loggedIn');
+        const openEndedReg = server.schema.registrationSchemas.find('open_ended_registration');
+        const registeredFrom = server.create('node');
+
+        const reg = server.create('registration', {
+            registrationSchema: openEndedReg,
+            registeredFrom,
+        }, 'withContributors');
+        server.create('contributor', { node: reg }, 'unregistered');
+
+        await visit(`/${reg.id}`);
+        assert.dom('[data-test-unregistered-contributor-name]').exists('unregistered contributor exists');
+        await click('[data-test-unregistered-contributor-name]');
+        await percySnapshot(assert);
+        assert.dom('[data-test-modal-heading]').containsText(currentUser.emails.models[0].emailAddress,
+            'claim unregistered user modal header contains current users email');
+        assert.dom('[data-test-modal-claim-button]')
+            .isEnabled('claim unregistered user modal has claim button that is enabled');
+        await click('[data-test-modal-cancel-button]');
+        assert.dom('[data-test-modal-heading]')
+            .doesNotExist('claim unregistered user modal gone after canceling claim');
     });
 });

@@ -11,15 +11,15 @@ import BinderHubConfigModel from 'ember-osf-web/models/binderhub-config';
 import $ from 'jquery';
 
 export default class BuildConsole extends Component {
-    binderHubConfig: DS.PromiseObject<BinderHubConfigModel> & BinderHubConfigModel = this.binderHubConfig;
+    binderHubConfig!: DS.PromiseObject<BinderHubConfigModel> & BinderHubConfigModel;
 
-    buildLog: BuildMessage[] | null = this.buildLog;
+    buildLog!: BuildMessage[] | null;
 
     buildLogLineCount = 0;
 
     buildStatusOpen = true;
 
-    buildPhase: string | null = this.buildPhase;
+    buildPhase!: string | null;
 
     @requiredAction requestBuild!: (path: BootstrapPath | null, callback: (result: BuildMessage) => void) => void;
 

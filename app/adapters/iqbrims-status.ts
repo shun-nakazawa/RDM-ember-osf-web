@@ -14,10 +14,10 @@ export default class IQBRIMSStatusAdapter extends OsfAdapter {
     namespace = namespace;
 
     buildURL(
-        _: string | undefined,
-        id: string | null,
-        __: DS.Snapshot | null,
-        ___: string,
+        _?: string | number,
+        id?: string | null,
+        __?: DS.Snapshot | null,
+        ___?: string,
         ____?: {},
     ): string {
         const nodeUrl = super.buildURL('node', null, null, 'findRecord', {});

@@ -1,15 +1,13 @@
 {{#if this.hasMultiplePages}}
     <span local-class='SimplePaginator__element'>
-        <OsfButton
+        <BsButton
             data-test-previous-page-button
             data-analytics-name='Pagination previous'
-            @disabled={{not this.hasPrev}}
+            aria-label={{t 'paginator.previous'}}
+            disabled={{not this.hasPrev}}
+            local-class='SimplePaginator__previous'
             @onClick={{action this._previous}}
-        >
-            <span aria-label='{{t 'paginator.previous'}}'>
-                &lt;
-            </span>
-        </OsfButton>
+        />
     </span>
     <span local-class='SimplePaginator__element SimplePaginator__text'>
         {{#if (and this.curPage this.maxPage)}}
@@ -17,15 +15,13 @@
         {{/if}}
     </span>
     <span local-class='SimplePaginator__element'>
-        <OsfButton
+        <BsButton
             data-test-next-page-button
             data-analytics-name='Pagination next'
-            @disabled={{not this.hasNext}}
+            aria-label={{t 'paginator.next'}}
+            disabled={{not this.hasNext}}
+            local-class='SimplePaginator__next'
             @onClick={{action this._next}}
-        >
-            <span aria-label='{{t 'paginator.previous'}}'>
-                &gt;
-            </span>
-        </OsfButton>
+        />
     </span>
 {{/if}}

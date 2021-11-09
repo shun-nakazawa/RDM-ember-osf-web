@@ -1,18 +1,31 @@
 import { ErrorObject } from 'jsonapi-typescript';
 import { ErrorDocument } from 'osf-api';
 
+import { SafeString } from '@ember/template/-private/handlebars';
 import stripHtmlTags from 'ember-osf-web/utils/strip-html-tags';
 
 // Raven is defined only in prod builds
 declare const Raven: undefined | {
-    captureException(e: ErrorDocument | Error, extra: object): void;
+    captureException(e: ErrorDocument | Error, extra: object): void,
 };
+
+// Errors from currentUser.authenticatedAJAX requests.
+interface AjaxRequestError {
+    responseJSON: {
+        errors: ErrorObject[],
+    };
+}
+
+function getErrors(error: ErrorDocument | AjaxRequestError): ErrorObject[] {
+    return 'responseJSON' in error ? error.responseJSON.errors : error.errors;
+}
 
 export function getApiError(error: ErrorDocument): ErrorObject|undefined {
     let apiError;
-    if (Array.isArray(error.errors) && error.errors.length
-        && typeof error.errors[0].detail === 'string') {
-        [apiError] = error.errors;
+    const errors: ErrorObject[] = getErrors(error);
+    if (Array.isArray(errors) && errors.length
+        && typeof errors[0].detail === 'string') {
+        [apiError] = errors;
     }
     return apiError;
 }
@@ -23,8 +36,9 @@ export function getApiErrorMessage(error: ErrorDocument): string {
 }
 
 export function getApiErrors(error: ErrorDocument): Record<string, ErrorObject> {
-    if (Array.isArray(error.errors)) {
-        return error.errors.reduce(
+    const errors: ErrorObject[] = getErrors(error);
+    if (Array.isArray(errors)) {
+        return errors.reduce(
             (acc: Record<string, ErrorObject>, val: ErrorObject, index) => (
                 { ...acc, [`api_error_${index}`]: val }
             ),
@@ -38,7 +52,7 @@ export function getApiErrors(error: ErrorDocument): Record<string, ErrorObject> 
 /* eslint-disable consistent-return */
 export default function captureException(
     error: Error | ErrorDocument,
-    extras: { errorMessage?: string } = {},
+    extras: { errorMessage?: string | SafeString } = {},
 ) {
     let apiErrors = {};
     if (!(error instanceof Error)) {
@@ -55,7 +69,6 @@ export default function captureException(
         return Raven.captureException(error, { extra });
     }
 
-    // eslint-disable-next-line no-console
-    console.error(error); // tslint:disable-line no-console
+    console.error(error); // eslint-disable-line  no-console
 }
 /* eslint-enable consistent-return */

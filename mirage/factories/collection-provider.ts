@@ -1,4 +1,5 @@
-import { Factory, faker } from 'ember-cli-mirage';
+import { Factory } from 'ember-cli-mirage';
+import faker from 'faker';
 
 import { randomGravatar } from 'ember-osf-web/mirage/utils';
 import CollectionProvider from 'ember-osf-web/models/collection-provider';
@@ -21,5 +22,7 @@ export default Factory.extend<CollectionProvider>({
     allowSubmissions: true,
     example: '',
     domainRedirectEnabled: false,
-    description: faker.lorem.paragraph,
+    description() {
+        return `${faker.lorem.paragraph()} Find out <a href="https://help.osf.io/">more</a>.`;
+    },
 });

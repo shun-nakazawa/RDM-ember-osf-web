@@ -57,14 +57,6 @@ declare const config: {
         };
     }>;
     FB_APP_ID?: string;
-    microfeedback: {
-        enabled: boolean;
-        url: string | null;
-        pageParams: { [index: string]: {
-            componentID?: string;
-            priorityID?: string;
-        } | undefined };
-    };
     OSF: {
         pageName: string;
         longBrand: string;
@@ -169,6 +161,7 @@ declare const config: {
         storageI18n: string;
         enableInactiveSchemas: string;
         verifyEmailModals: string;
+        egapAdmins: string;
     };
     gReCaptcha: {
         siteKey: string;
@@ -212,10 +205,6 @@ declare const config: {
         };
         registries: {
             enabled: boolean;
-        };
-        handbook: {
-            enabled: boolean;
-            docGenerationEnabled: boolean;
         };
     };
     'ember-cli-tailwind'?: {

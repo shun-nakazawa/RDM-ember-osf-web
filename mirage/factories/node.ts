@@ -1,5 +1,6 @@
 import { capitalize } from '@ember/string';
-import { Collection, Factory, faker, trait, Trait } from 'ember-cli-mirage';
+import { Collection, Factory, trait, Trait } from 'ember-cli-mirage';
+import faker from 'faker';
 
 import Identifier from 'ember-osf-web/models/identifier';
 import Node, { NodeCategory } from 'ember-osf-web/models/node';
@@ -25,6 +26,7 @@ export interface NodeTraits {
     withAffiliatedInstitutions: Trait;
     withManyAffiliatedInstitutions: Trait;
     withFiles: Trait;
+    withStorage: Trait;
 }
 
 export default Factory.extend<MirageNode & NodeTraits>({
@@ -45,7 +47,7 @@ export default Factory.extend<MirageNode & NodeTraits>({
     currentUserIsContributor: false,
     preprint: false,
     description() {
-        return faker.lorem.sentences(faker.random.number({ min: 0, max: 4 }));
+        return faker.lorem.paragraph();
     },
     currentUserPermissions: [],
     dateModified() {
@@ -90,7 +92,7 @@ export default Factory.extend<MirageNode & NodeTraits>({
         afterCreate(node, server) {
             const registrationCount = faker.random.number({ min: 5, max: 15 });
             for (let i = 0; i < registrationCount; i++) {
-                const registration = server.create('registration', {
+                const reg = server.create('registration', {
                     registeredFrom: node,
                     category: node.category,
                     title: node.title,
@@ -99,7 +101,7 @@ export default Factory.extend<MirageNode & NodeTraits>({
                     ),
                 });
                 node.contributors.models.forEach(
-                    contributor => server.create('contributor', { node: registration, users: contributor.users }),
+                    contributor => server.create('contributor', { node: reg, users: contributor.users }),
                 );
             }
         },
@@ -154,10 +156,16 @@ export default Factory.extend<MirageNode & NodeTraits>({
     withFiles: trait<MirageNode>({
         afterCreate(node, server) {
             const count = faker.random.number({ min: 1, max: 5 });
-            const osfstorage = server.create('file-provider', { node });
+            const osfstorage = server.create('file-provider', { target: node });
             const files = server.createList('file', count, { target: node });
-
             osfstorage.rootFolder.update({ files });
+        },
+    }),
+
+    withStorage: trait<MirageNode>({
+        afterCreate(node, server) {
+            const storage = server.create('node-storage', { id: node.id });
+            node.update({ storage });
         },
     }),
 

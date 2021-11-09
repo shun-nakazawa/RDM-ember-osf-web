@@ -1,9 +1,13 @@
+import Store from '@ember-data/store';
 import { computed } from '@ember/object';
 import Route from '@ember/routing/route';
 import { inject as service } from '@ember/service';
-import { task } from 'ember-concurrency-decorators';
-import { DS } from 'ember-data';
+import { waitFor } from '@ember/test-waiters';
+import { task } from 'ember-concurrency';
+import { taskFor } from 'ember-concurrency-ts';
 import Intl from 'ember-intl/services/intl';
+
+// eslint-disable-next-line ember/no-mixins
 import ConfirmationMixin from 'ember-onbeforeunload/mixins/confirmation';
 
 import requireAuth from 'ember-osf-web/decorators/require-auth';
@@ -24,7 +28,7 @@ interface TaskInstanceResult {
 @requireAuth()
 export default class Submit extends Route.extend(ConfirmationMixin) {
     @service currentUser!: CurrentUser;
-    @service store!: DS.Store;
+    @service store!: Store;
     @service theme!: Theme;
     @service intl!: Intl;
 
@@ -32,9 +36,10 @@ export default class Submit extends Route.extend(ConfirmationMixin) {
     confirmationMessage = this.intl.t('collections.collections_submission.warning_body');
 
     @task
-    loadModel = task(function *(this: Submit): IterableIterator<any> {
+    @waitFor
+    async loadModel() {
         const provider = this.theme.provider as CollectionProvider;
-        const collection = yield provider.primaryCollection;
+        const collection = await provider.primaryCollection;
 
         const collectedMetadatum = this.store.createRecord('collected-metadatum', {
             collection,
@@ -46,11 +51,11 @@ export default class Submit extends Route.extend(ConfirmationMixin) {
             collection,
             collectedMetadatum,
         } as TaskInstanceResult;
-    });
+    }
 
     model() {
         return {
-            taskInstance: this.loadModel.perform() as Promise<TaskInstanceResult>,
+            taskInstance: taskFor(this.loadModel).perform() as Promise<TaskInstanceResult>,
         };
     }
 

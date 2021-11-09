@@ -1,9 +1,11 @@
+// .Main and .Title is being composed in registries/branded/new and registries/branded/moderation
+
 .ContentBackground {
-    flex-grow: 1;
-    justify-content: center;
-    background-image: url('img/bg-light.jpg');
-    background-repeat: no-repeat;
-    background-size: cover;
+    composes: ContentBackground from '../../overview/styles.scss';
+}
+
+.DraftHeroOverlay {
+    padding: 20px 0;
 }
 
 .Left {
@@ -16,40 +18,29 @@
 }
 
 .Right {
-    padding: 30px;
     min-width: 216px;
     width: 216px;
 }
 
-.Heading {
+.Title {
     display: flex;
     flex-direction: column;
-    align-items: center;
+    justify-content: center;
+    min-height: 90px;
     width: 100%;
-    background-image: url('img/bg-dark.jpg');
-    background-repeat: no-repeat;
-    background-size: cover;
+    max-width: 1140px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 1em 2em;
 
-    .Title {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        min-height: 90px;
-        width: 100%;
-        max-width: 1140px;
-        margin-left: auto;
-        margin-right: auto;
-        padding: 1em 2em;
+    & > h1,
+    & > a {
+        color: $white;
+        width: fit-content;
+    }
 
-        & > h1,
-        & > a {
-            color: $white;
-            width: fit-content;
-        }
-
-        & > h1 {
-            margin-top: 5px;
-        }
+    & > h1 {
+        margin-top: 5px;
     }
 }
 
@@ -62,13 +53,31 @@
 
 .RightWrapper {
     position: sticky;
-    top: 20px;
+    top: 0;
+}
+
+.RightNavWrapper {
+    padding: 30px;
     display: flex;
     flex-direction: column;
     text-align: center;
+    z-index: 1;
+    background: $color-bg-white;
+    border-bottom: 1px solid $color-border-gray;
 
     & > * {
         margin-bottom: 15px;
+    }
+}
+
+.EditWarning {
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+
+    & i {
+        color: $brand-warning;
     }
 }
 
@@ -102,10 +111,6 @@
 
 .SaveMessage {
     display: inline-block;
-}
-
-.SaveFailed {
-    color: $primary-red;
 }
 
 .SideBarToggle {

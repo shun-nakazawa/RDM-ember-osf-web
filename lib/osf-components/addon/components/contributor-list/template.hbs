@@ -1,6 +1,20 @@
-{{#if this.node.isAnonymous}}
+{{#if @model.isAnonymous}}
     {{t 'contributor_list.anonymous'}}
 {{else}}
+    {{#if this.shouldShowRemoveMeButton}}
+        <div local-class='Button__removeMe'>
+            <DeleteButton
+                data-test-contributor-remove-me
+                local-class='RemoveContributorButton'
+                @buttonLabel={{t 'contributor_list.remove_contributor.button_label'}}
+                @delete={{this.removeMe}}
+                @smallSecondary={{true}}
+                @modalTitle={{t 'contributor_list.remove_contributor.confirm_remove.title'}}
+                @modalBody={{t 'contributor_list.remove_contributor.confirm_remove.body'}}
+                @confirmButtonText={{t 'contributor_list.remove_contributor.confirm_remove.button'}}
+            />
+        </div>
+    {{/if}}
     <InlineList
         @items={{this.displayedContributors}}
         @total={{this.totalContributors}}
@@ -8,18 +22,26 @@
         as |list|
     >
         {{~#if list.item}}
-            {{~contributor-list/contributor
-                contributor=list.item
-                shouldLinkUser=this.shouldLinkUsers
-                shouldShortenName=this.shouldTruncate
-            ~}}
+            {{~#if (and list.item.unregisteredContributor this.shouldEnableClaimUser)~}}
+                {{~contributor-list/unregistered-contributor
+                    contributor=list.item
+                    nodeId=@model.id
+                ~}}
+            {{~else~}}
+                {{~contributor-list/contributor
+                    contributor=list.item
+                    shouldLinkUser=this.shouldLinkUsers
+                    shouldShortenName=this.shouldTruncate
+                    nodeId=@model.id
+                ~}}
+            {{~/if~}}
         {{else if list.remainingCount}}
-            {{#if this.isLoading }}
+            {{#if this.isLoading}}
                 <LoadingIndicator @inline={{true}} @dark={{true}} />
             {{else if this.shouldTruncate}}
                 {{t 'contributor_list.x_more' x=list.remainingCount}}
             {{else}}
-                <OsfButton
+                <BsButton
                     data-test-load-more-contribs
                     data-analytics-name='Load more contributors'
                     aria-label={{t 'contributor_list.more'}}
@@ -29,7 +51,7 @@
                 >
                     {{t 'contributor_list.x_more' x=list.remainingCount}}
                     <FaIcon @icon='caret-down' />
-                </OsfButton>
+                </BsButton>
             {{/if}}
         {{/if~}}
     </InlineList>

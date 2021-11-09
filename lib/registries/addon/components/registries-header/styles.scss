@@ -1,9 +1,109 @@
+.HeaderContainer {
+    padding: 30px 0;
+}
+
+.ProviderDescription {
+    position: relative;
+    margin: 0 65px;
+    padding-top: 10px;
+
+    :global(.ColorBlack) {
+        color: $color-text-black;
+    }
+
+    :global(.ColorPureBlack) {
+        color: $color-black;
+    }
+
+    :global(.ColorBlue) {
+        color: $color-blue;
+    }
+
+    :global(.ColorPureBlue) {
+        color: $color-pure-blue;
+    }
+
+    :global(.ColorGrey) {
+        color: $color-text-gray;
+    }
+
+    :global(.ColorRed) {
+        color: $color-red;
+    }
+
+    :global(.ColorGreen) {
+        color: $color-green;
+    }
+
+    :global(.ColorYellow) {
+        color: $color-yellow;
+    }
+
+    :global(.ColorTurquoise) {
+        color: $color-turquoise;
+    }
+
+    :global(.ColorPurple) {
+        color: $color-purple;
+    }
+
+    :global(.LinkColorBlack) {
+        a {
+            color: $color-link-black;
+        }
+    }
+
+    :global(.LinkColorBlue) {
+        a {
+            color: $color-link-blue;
+        }
+    }
+
+    :global(.LinkColorPureBlue) {
+        a {
+            color: $color-pure-blue;
+        }
+    }
+
+    :global(.LinkColorGrey) {
+        a {
+            color: $color-grey;
+        }
+    }
+
+    :global(.LinkColorRed) {
+        a {
+            color: $color-red;
+        }
+    }
+
+    :global(.LinkColorGreen) {
+        a {
+            color: $color-green;
+        }
+    }
+
+    :global(.LinkColorYellow) {
+        a {
+            color: $color-yellow;
+        }
+    }
+
+    :global(.LinkColorTurquoise) {
+        a {
+            color: $color-turquoise;
+        }
+    }
+
+    :global(.LinkColorPurple) {
+        a {
+            color: $color-purple;
+        }
+    }
+}
+
 .RegistriesHeader {
-    background: url('img/bg-dark.jpg') top center $color-bg-blue-darker;
-    border-bottom: 1px solid #ddd;
     color: #fff;
-    padding-bottom: 30px;
-    padding-top: 120px;
 
     a {
         color: #80c2f7;
@@ -20,7 +120,50 @@
 }
 
 .RegistriesHeader__Brand {
-    background: url('img/osf-registries-white.png') top center no-repeat;
+    background: var(--hero-logo-img-url) top center no-repeat;
     background-size: contain;
     height: 70px;
 }
+
+.SearchForm {
+    position: relative;
+    margin: 0 50px;
+
+    input {
+        font-size: 18px;
+        padding: 28px 50px;
+    }
+}
+
+.SearchForm__HiddenLabel {
+    position: absolute;
+    height: 1px;
+    width: 1px;
+    overflow: hidden;
+    clip: rect(1px, 1px, 1px, 1px);
+}
+
+.SearchIcon {
+    position: absolute;
+    top: 9px;
+    left: 8px;
+    font-size: 24px;
+    color: var(--primary-color);
+
+    &:hover {
+        color: var(--secondary-color);
+    }
+}
+
+.HelpIcon {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 24px;
+    color: var(--primary-color);
+
+    &:hover {
+        color: var(--secondary-color);
+    }
+}
+

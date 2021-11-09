@@ -1,4 +1,5 @@
-import { Factory, faker } from 'ember-cli-mirage';
+import { Factory } from 'ember-cli-mirage';
+import faker from 'faker';
 
 import CollectedMetadatum from 'ember-osf-web/models/collected-metadatum';
 
@@ -27,6 +28,14 @@ export default Factory.extend<CollectedMetadatum>({
         if (!collectedMetadatum.volume) {
             const volume = faker.random.arrayElement(collectedMetadatum.collection.volumeChoices);
             collectedMetadatum.update({ volume });
+        }
+        if (!collectedMetadatum.studyDesign) {
+            const studyDesign = faker.random.arrayElement(collectedMetadatum.collection.studyDesignChoices);
+            collectedMetadatum.update({ studyDesign });
+        }
+        if (!collectedMetadatum.schoolType) {
+            const schoolType = faker.random.arrayElement(collectedMetadatum.collection.schoolTypeChoices);
+            collectedMetadatum.update({ schoolType });
         }
     },
 });

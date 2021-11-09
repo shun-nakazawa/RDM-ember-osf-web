@@ -7,7 +7,7 @@ function isTruthy(val) {
 let localConfig;
 
 try {
-    localConfig = require('./local'); // eslint-disable-line global-require
+    localConfig = require('./local'); // eslint-disable-line global-require,node/no-missing-require
 } catch (ex) {
     localConfig = {};
 }
@@ -21,8 +21,6 @@ const {
     CLIENT_ID: clientId,
     COLLECTIONS_ENABLED = false,
     REGISTRIES_ENABLED = true,
-    HANDBOOK_ENABLED = false,
-    HANDBOOK_DOC_GENERATION_ENABLED = false,
     TESTS_ENABLED = false,
     FB_APP_ID,
     GIT_COMMIT: release,
@@ -143,21 +141,6 @@ module.exports = function(environment) {
             },
         ],
         FB_APP_ID,
-        microfeedback: {
-            enabled: true,
-            url: null,
-            pageParams: {
-                // Mapping of pageName to query params to add
-                // to the base MicroFeedback URL
-                // e.g. {
-                //    QuickFiles: {
-                //        componentID: '13836',
-                //        priorityID: '10100',
-                //    }
-                // }
-                QuickFiles: {},
-            },
-        },
         OSF: {
             pageName,
             longBrand,
@@ -253,6 +236,8 @@ module.exports = function(environment) {
         },
         featureFlagNames: {
             routes: {
+                'registries.branded': 'branded_registries',
+                'registries.branded.discover': 'branded_registries',
                 'guid-node.index': 'ember_project_detail_page',
                 'guid-node.drafts.index': 'ember_edit_draft_registration_page',
                 'guid-node.drafts.register': 'ember_edit_draft_registration_page',
@@ -300,6 +285,7 @@ module.exports = function(environment) {
             ABTesting: {
                 homePageHeroTextVersionB: 'ab_testing_home_page_hero_text_version_b',
             },
+            egapAdmins: 'egap_admins',
         },
         gReCaptcha: {
             siteKey: RECAPTCHA_SITE_KEY,
@@ -327,10 +313,6 @@ module.exports = function(environment) {
             },
             registries: {
                 enabled: !devMode || isTruthy(REGISTRIES_ENABLED),
-            },
-            handbook: {
-                enabled: isTruthy(HANDBOOK_ENABLED),
-                docGenerationEnabled: HANDBOOK_DOC_GENERATION_ENABLED,
             },
         },
         'ember-cli-tailwind': {
@@ -362,6 +344,8 @@ module.exports = function(environment) {
         // ENV.APP.LOG_VIEW_LOOKUPS = true;
 
         ENV.metricsAdapters[0].config.cookieDomain = 'none';
+        ENV.APP.LOG_TRANSITIONS = true;
+        ENV.APP.LOG_TRANSITIONS_INTERNAL = true;
 
         Object.assign(ENV, {
             'ember-a11y-testing': {

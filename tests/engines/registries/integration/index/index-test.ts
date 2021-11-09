@@ -1,6 +1,6 @@
 import EngineInstance from '@ember/engine/instance';
 import { click, fillIn, triggerKeyEvent } from '@ember/test-helpers';
-import setupMirage from 'ember-cli-mirage/test-support/setup-mirage';
+import { setupMirage } from 'ember-cli-mirage/test-support';
 import { TestContext } from 'ember-test-helpers';
 import { module, skip } from 'qunit';
 import sinon from 'sinon';
@@ -27,10 +27,10 @@ module('Registries | Integration | index', hooks => {
 
     skip('analytics', async function(this: TestContext, assert: Assert) {
         const testCases: Array<{
-            name: string;
+            name: string,
             action: () => Promise<void>,
             // category, label, extra
-            expected: Array<string | sinon.SinonMatcher>
+            expected: Array<string | sinon.SinonMatcher>,
             }> = [
                 {
                     name: 'Search Button (Clicked)',

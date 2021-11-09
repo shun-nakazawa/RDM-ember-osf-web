@@ -1,4 +1,5 @@
-import DS from 'ember-data';
+import { attr, belongsTo, hasMany, AsyncBelongsTo, AsyncHasMany } from '@ember-data/model';
+import { assert } from '@ember/debug';
 import { Link } from 'jsonapi-typescript';
 
 import { FileReference } from 'ember-osf-web/packages/registration-schema';
@@ -6,11 +7,10 @@ import getHref from 'ember-osf-web/utils/get-href';
 
 import BaseFileItem, { BaseFileLinks } from './base-file-item';
 import CommentModel from './comment';
+import DraftNode from './draft-node';
 import FileVersionModel from './file-version';
 import NodeModel from './node';
 import UserModel from './user';
-
-const { attr, belongsTo, hasMany } = DS;
 
 export interface FileLinks extends BaseFileLinks {
     info: Link;
@@ -38,25 +38,25 @@ export default class FileModel extends BaseFileItem {
     @attr('fixstring') checkout!: string;
 
     @belongsTo('file', { inverse: 'files' })
-    parentFolder!: DS.PromiseObject<FileModel> & FileModel;
+    parentFolder!: AsyncBelongsTo<FileModel> & FileModel;
 
     // Folder attributes
     @hasMany('file', { inverse: 'parentFolder' })
-    files!: DS.PromiseManyArray<FileModel>;
+    files!: AsyncHasMany<FileModel>;
 
     // File attributes
     @hasMany('file-version')
-    versions!: DS.PromiseManyArray<FileVersionModel>;
+    versions!: AsyncHasMany<FileVersionModel>;
 
     @hasMany('comment', { inverse: null })
-    comments!: DS.PromiseManyArray<CommentModel>;
+    comments!: AsyncHasMany<CommentModel>;
 
     // TODO: In the future apiv2 may also need to support this pointing at nodes OR registrations
-    @belongsTo('node')
-    target!: DS.PromiseObject<NodeModel> & NodeModel;
+    @belongsTo('abstract-node', { inverse: 'files', polymorphic: true })
+    target!: (AsyncBelongsTo<NodeModel> & NodeModel) | (AsyncBelongsTo<DraftNode> & DraftNode);
 
     @belongsTo('user')
-    user!: DS.PromiseObject<UserModel> & UserModel;
+    user!: AsyncBelongsTo<UserModel> & UserModel;
 
     // BaseFileItem override
     isFileModel = true;
@@ -162,8 +162,8 @@ export default class FileModel extends BaseFileItem {
         }).then(() => this.reload());
     }
 
-    moveOnCurrentProject(newProvider: string, newPath: string): Promise<null> {
-        return new Promise<null>((resolve, reject) => {
+    moveOnCurrentProject(newProvider: string, newPath: string): Promise<void> {
+        return new Promise<void>((resolve, reject) => {
             this.currentUser.authenticatedAJAX({
                 url: getHref(this.links.move),
                 type: 'POST',
@@ -189,6 +189,15 @@ export default class FileModel extends BaseFileItem {
                     reject(error);
                 }
             });
+        });
+    }
+
+    delete(): Promise<void> {
+        assert('links.delete is required to remove a file or folder', Boolean(this.links.delete));
+        return this.currentUser.authenticatedAJAX({
+            url: getHref(this.links.delete),
+            type: 'DELETE',
+            xhrFields: { withCredentials: true },
         });
     }
 }

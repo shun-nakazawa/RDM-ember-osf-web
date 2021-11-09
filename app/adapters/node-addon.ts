@@ -3,11 +3,11 @@ import OsfAdapter from './osf-adapter';
 
 export default class NodeAddonAdapter extends OsfAdapter {
     buildURL(
-        modelName: 'node-addon',
-        id: string,
-        snapshot: DS.Snapshot,
-        requestType: string,
-    ) {
+        modelName?: string | number,
+        id?: string | null,
+        snapshot?: DS.Snapshot | null,
+        requestType?: string,
+    ): string {
         return super.buildURL(modelName, id, snapshot, requestType);
     }
 }

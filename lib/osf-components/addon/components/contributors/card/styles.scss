@@ -1,0 +1,39 @@
+.CardContainer {
+    margin: 0;
+    border-bottom: 1px solid $color-border-gray;
+    background-color: #fff;
+    display: flex;
+    flex-direction: column;
+}
+
+.MainSection {
+    display: flex;
+    height: 60px;
+    align-items: center;
+    padding: 0 20px;
+}
+
+.CardSection {
+    flex: 1 0 auto;
+    max-width: 34%;
+    display: flex;
+    align-items: center;
+
+    &:first-of-type {
+        flex: 2 0 auto;
+        max-width: 40%;
+    }
+
+    :global(.ember-power-select-trigger) {
+        width: 120px;
+    }
+}
+
+.DropdownSection {
+    display: flex;
+}
+
+.DropdownList {
+    list-style: none;
+    padding-inline-start: 20px;
+}

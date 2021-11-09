@@ -2,7 +2,7 @@
     :global(.popover-content) {
         padding: 4px 2px 2px 8px;
 
-        i {
+        svg {
             font-size: 1.6em;
             padding-right: 5px;
         }
@@ -18,6 +18,5 @@
     &:focus,
     &:active {
         text-decoration: none;
-        outline: 0;
     }
 }

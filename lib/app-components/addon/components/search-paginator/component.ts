@@ -4,7 +4,6 @@ import { inject as service } from '@ember/service';
 import Intl from 'ember-intl/services/intl';
 
 import { layout, requiredAction } from 'ember-osf-web/decorators/component';
-import defaultTo from 'ember-osf-web/utils/default-to';
 import styles from './styles';
 import template from './template';
 
@@ -12,15 +11,16 @@ interface Item {
     text: string|number;
     disabled?: boolean;
     action?: string;
+    aria: string|number;
 }
 
 @layout(template, styles)
 export default class SearchPaginator extends Component {
     @service intl!: Intl;
 
-    current: number = defaultTo(this.current, 1);
-    minimum: number = defaultTo(this.minimum, 1);
-    maximum: number = defaultTo(this.maximum, 100);
+    current = 1;
+    minimum = 1;
+    maximum = 100;
 
     @computed('current', 'minimum', 'maximum', 'intl.locale')
     get numbers(): Array<string|number> {
@@ -97,15 +97,18 @@ export default class SearchPaginator extends Component {
                 text: this.intl.t('app_components.search_paginator.prev'),
                 disabled: this.current === this.minimum,
                 action: 'prevPage',
+                aria: this.intl.t('app_components.search_paginator.prev_aria'),
             },
             ...this.numbers.map(text => ({
                 text,
                 disabled: typeof text !== 'number',
+                aria: this.intl.t('app_components.search_paginator.go_to', { page: text }),
             })),
             {
                 text: this.intl.t('app_components.search_paginator.next'),
                 disabled: this.current === this.maximum,
                 action: 'nextPage',
+                aria: this.intl.t('app_components.search_paginator.next_aria'),
             },
         ];
     }

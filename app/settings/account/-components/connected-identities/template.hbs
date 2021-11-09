@@ -17,11 +17,7 @@
             as |list|
         >
             <list.item as |identity|>
-                {{#if (not identity)}}
-                    <ContentPlaceholders as |placeholder|>
-                        <placeholder.heading @subtitle={{false}} />
-                    </ContentPlaceholders>
-                {{else}}
+                {{#if identity}}
                     <span data-test-connected-identities-item='{{identity.id}}'>
                         {{identity.id}}: {{identity.externalId}}
                         (
@@ -35,12 +31,17 @@
                             data-test-connected-identities-delete
                             local-class='delete-button'
                             @small={{true}}
+                            @noBackground={{true}}
                             @delete={{action this.removeIdentity identity}}
                             @modalTitle={{t 'settings.account.connected_identities.confirm_remove.title'}}
                             @modalBody={{t 'settings.account.connected_identities.confirm_remove.body' identity=identity}}
                             @confirmButtonText={{t 'settings.account.connected_identities.confirm_remove.confirm_button_text'}}
                         />
                     </span>
+                {{else}}
+                    <ContentPlaceholders as |placeholder|>
+                        <placeholder.heading @subtitle={{false}} />
+                    </ContentPlaceholders>
                 {{/if}}
             </list.item>
             <list.empty>

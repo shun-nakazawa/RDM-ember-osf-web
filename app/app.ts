@@ -8,7 +8,6 @@ const { modulePrefix } = config;
 const App = Application.extend({
     modulePrefix,
     Resolver,
-
     // eslint-disable-next-line ember/avoid-leaking-state-in-ember-objects
     engines: {
         collections: {
@@ -32,24 +31,6 @@ const App = Application.extend({
                     'ready',
                     'osf-modal-state',
                     'osf-router',
-                ],
-            },
-        },
-        handbook: {
-            dependencies: {
-                services: [
-                    'analytics',
-                    'current-user',
-                    'features',
-                    'intl',
-                    'ready',
-                    'router',
-                    'session',
-                    'store',
-                    'toast',
-                    'osf-modal-state',
-                    'osf-router',
-                    'media',
                 ],
             },
         },

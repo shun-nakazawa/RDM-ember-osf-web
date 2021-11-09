@@ -7,7 +7,6 @@
                         data-test-osf-meeting-img
                         src='/assets/images/meetings/osf_meetings_white.png'
                         alt={{t 'meetings.index.meetings-hero-banner.image_alt'}}
-                        style='width: 80%'
                     >
                 </h1>
                 <h2>
@@ -17,12 +16,14 @@
             <div local-class='network-img'> </div>
             <div class='row'>
                 <div class='col-md-6 col-lg-5 col-xl-4 text-center m-b-lg'>
-                    <FaIcon
-                        data-test-fa-icon-users
-                        @icon='users'
-                        class='m-v-sm'
-                        local-class='user-icon icon-circle'
-                    />
+                    <div local-class='icon-circle'>
+                        <FaIcon
+                            data-test-fa-icon-users
+                            @icon='users'
+                            class='m-v-sm'
+                            local-class='user-icon'
+                        />
+                    </div>
                     <h3 class='f-w-xl'>
                         {{t 'meetings.index.meetings-hero-banner.conference_organizers_h3'}}
                     </h3>
@@ -32,29 +33,31 @@
                         </p>
                     </div>
                     <div class='p-v-md'>
-                        <OsfButton
+                        <BsButton
                             data-test-register-button
                             @type='success'
                             @onClick={{action this.toggleRegisterPanel}}
                         >
                             {{t 'meetings.index.meetings-hero-banner.conference_organizers_register_button'}}
-                        </OsfButton>
+                        </BsButton>
                     </div>
                     <CpPanel @open={{this.registerPanelOpen}} as |panel| >
                         <panel.body>
-                            <div data-test-register-panel-text class='m-lg osf-box-lt p-md text-left'>
+                            <div data-test-register-panel-text class='m-lg osf-box-lt p-md text-left' local-class='register-box'>
                                 {{t 'meetings.index.meetings-hero-banner.conference_organizers_register_panel_texts' htmlSafe=true}}
                             </div>
                         </panel.body>
                     </CpPanel>
                 </div>
                 <div class='col-md-6 col-lg-5 col-lg-offset-2 col-xl-4 col-xl-offset-4 text-center m-b-lg'>
-                    <FaIcon
-                        data-test-fa-icon-cloud-upload
-                        @icon='cloud-upload'
-                        class='m-v-sm'
-                        local-class='user-icon icon-circle'
-                    />
+                    <div local-class='icon-circle'>
+                        <FaIcon
+                            data-test-fa-icon-cloud-upload
+                            @icon='cloud-upload-alt'
+                            class='m-v-sm'
+                            local-class='user-icon'
+                        />
+                    </div>
                     <h3 class='f-w-xl'>
                         {{t 'meetings.index.meetings-hero-banner.conference_participants_h3'}}
                     </h3>
@@ -64,13 +67,13 @@
                         </p>
                     </div>
                     <div class='p-v-md'>
-                        <OsfButton
+                        <BsButton
                             data-test-upload-button
                             @type='success'
                             @onClick={{action this.toggleUploadPanel}}
                         >
                             {{t 'meetings.index.meetings-hero-banner.conference_participants_upload_button'}}
-                        </OsfButton>
+                        </BsButton>
                     </div>
                     <CpPanel @open={{this.uploadPanelOpen}} as |panel| >
                         <panel.body>

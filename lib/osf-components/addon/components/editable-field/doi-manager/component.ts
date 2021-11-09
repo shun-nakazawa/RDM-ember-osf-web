@@ -3,15 +3,15 @@ import Component from '@ember/component';
 import { action, computed } from '@ember/object';
 import { alias, and, not } from '@ember/object/computed';
 import { inject as service } from '@ember/service';
-import { task } from 'ember-concurrency-decorators';
-import Store from 'ember-data/store';
+import { waitFor } from '@ember/test-waiters';
+import { task } from 'ember-concurrency';
+import Store from '@ember-data/store';
 import config from 'ember-get-config';
 import Intl from 'ember-intl/services/intl';
 import Toast from 'ember-toastr/services/toast';
 
 import { layout } from 'ember-osf-web/decorators/component';
-import Identifier from 'ember-osf-web/models/identifier';
-import Registration, { RegistrationState } from 'ember-osf-web/models/registration';
+import Registration, { RegistrationReviewStates } from 'ember-osf-web/models/registration';
 import captureException, { getApiErrorMessage } from 'ember-osf-web/utils/capture-exception';
 
 import template from './template';
@@ -40,15 +40,15 @@ export default class DoiManagerComponent extends Component {
     @service toast!: Toast;
     @service store!: Store;
 
-    requestedEditMode: boolean = false;
+    requestedEditMode = false;
 
     @alias('node.userHasAdminPermission') userCanEdit!: boolean;
     @and('userCanEdit', 'requestedEditMode') inEditMode!: boolean;
     @not('nodeDoi') fieldIsEmpty!: boolean;
 
-    @computed('userCanEdit', 'node.state', 'nodeDoi')
+    @computed('userCanEdit', 'node.reviewsState', 'nodeDoi')
     get userCanMintDoi() {
-        return !this.nodeDoi && this.userCanEdit && this.node.state === RegistrationState.Public;
+        return !this.nodeDoi && this.userCanEdit && this.node.reviewsState === RegistrationReviewStates.Accepted;
     }
 
     @computed('fieldIsEmpty', 'userCanMintDoi')
@@ -62,18 +62,20 @@ export default class DoiManagerComponent extends Component {
     }
 
     @task({ on: 'didReceiveAttrs' })
-    loadIdentifiers = task(function *(this: DoiManagerComponent) {
+    @waitFor
+    async loadIdentifiers() {
         if (this.node) {
-            const identifiers: Identifier[] = yield this.node.identifiers;
+            const identifiers = await this.node.identifiers;
             const doi = identifiers.find(i => i.category === 'doi');
             if (doi) {
                 this.set('nodeDoi', doi.value);
             }
         }
-    });
+    }
 
     @task
-    requestDoi = task(function *(this: DoiManagerComponent) {
+    @waitFor
+    async requestDoi() {
         if (this.node) {
             const identifier = this.store.createRecord('identifier', {
                 category: 'doi',
@@ -81,7 +83,7 @@ export default class DoiManagerComponent extends Component {
             });
 
             try {
-                const doi = yield identifier.save();
+                const doi = await identifier.save();
                 if (doi) {
                     this.set('nodeDoi', doi.value);
                 }
@@ -95,7 +97,7 @@ export default class DoiManagerComponent extends Component {
             this.set('requestedEditMode', false);
             this.toast.success(this.intl.t('registries.registration_metadata.mint_doi.success'));
         }
-    });
+    }
 
     @action
     startEditing() {

@@ -1,0 +1,35 @@
+.CardContainer {
+    composes: CardContainer from '../styles.scss';
+}
+
+.MainSection {
+    composes: MainSection from '../styles.scss';
+}
+
+.CardSection {
+    composes: CardSection from '../styles.scss';
+}
+
+.CardSectionSmall {
+    composes: CardSection from '../styles.scss';
+    max-width: 14%;
+}
+
+.CardSectionXS {
+    composes: CardSection from '../styles.scss';
+    max-width: 4%;
+}
+
+.Handle {
+    padding-right: 10px;
+    color: var(--primary-color);
+    font-size: 20pt;
+}
+
+.DropdownSection {
+    composes: DropdownSection from '../styles.scss';
+}
+
+.DropdownList {
+    composes: DropdownList from '../styles.scss';
+}

@@ -1,0 +1,109 @@
+.contentBackground {
+    composes: ContentBackground from '../../overview/styles.scss';
+}
+
+.main {
+    composes: Main from '../../drafts/draft/styles.scss';
+}
+
+.title {
+    composes: Title from '../../drafts/draft/styles.scss';
+}
+
+.selectLabel {
+    composes: SchemaBlockDropdown from '../../drafts/draft/metadata/styles.scss';
+    display: block;
+    font-weight: 700;
+
+    div {
+        max-width: 361px;
+    }
+}
+
+.projectHeading {
+    text-align: center;
+}
+
+.registrationForm {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+}
+
+.InformationText {
+    margin: 20px 0 30px;
+    text-align: center;
+    font-style: italic;
+
+    &.ComponentHelpText {
+        max-width: 390px;
+    }
+}
+
+.createDraftButton {
+    margin: 20px 0;
+
+    &:disabled {
+        cursor: not-allowed;
+        filter: alpha(opacity=65);
+        opacity: 0.65;
+        box-shadow: none;
+    }
+}
+
+.stepLabel {
+    text-align: center;
+    text-transform: uppercase;
+}
+
+.required {
+    color: $brand-danger;
+}
+
+.StepOneContainer {
+    margin-bottom: 30px;
+}
+
+.RadioFieldset {
+    position: relative;
+    text-align: center;
+}
+
+.RadioLegend {
+    border-bottom: 0;
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.RadioElement {
+    width: 80px;
+    height: 40px;
+    margin: 0;
+}
+
+.RadioInput {
+    position: absolute;
+    opacity: 0;
+
+    &:hover {
+        cursor: pointer;
+    } 
+}
+
+.RadioLabel {
+    text-align: center;
+    line-height: 40px;
+    border: 1px solid $color-border-gray;
+    color: $color-text-blue-dark;
+    text-transform: uppercase;
+}
+
+.RadioButtonAndLabelDiv {
+    display: inline;
+}
+
+.IsChecked {
+    color: $color-text-blue-heading;
+    background-color: $color-bg-gray-blue-light;
+    border: 1px solid $color-bg-gray-blue-light;
+}

@@ -1,45 +1,89 @@
+import Store from '@ember-data/store';
 import Component from '@ember/component';
 import { action } from '@ember/object';
 import { inject as service } from '@ember/service';
-import { task } from 'ember-concurrency-decorators';
-import DS from 'ember-data';
+import { waitFor } from '@ember/test-waiters';
+import { ValidationObject } from 'ember-changeset-validations';
+import { validateFormat } from 'ember-changeset-validations/validators';
+import { BufferedChangeset } from 'ember-changeset/types';
+import { restartableTask, task } from 'ember-concurrency';
+import { taskFor } from 'ember-concurrency-ts';
 import Intl from 'ember-intl/services/intl';
 import Toast from 'ember-toastr/services/toast';
 
-import { QueryHasManyResult } from 'ember-osf-web/models/osf-model';
 import UserEmail from 'ember-osf-web/models/user-email';
 import CurrentUser from 'ember-osf-web/services/current-user';
+import buildChangeset from 'ember-osf-web/utils/build-changeset';
 import captureException, { getApiErrorMessage } from 'ember-osf-web/utils/capture-exception';
-
-import { ChangesetDef } from 'ember-changeset/types';
 import getHref from 'ember-osf-web/utils/get-href';
+
+interface EmailValidation {
+    emailAddress: string;
+}
 
 export default class ConnectedEmails extends Component {
     // Private properties
     @service currentUser!: CurrentUser;
-    @service store!: DS.Store;
+    @service store!: Store;
     @service intl!: Intl;
     @service toast!: Toast;
-    userEmail!: UserEmail;
     showAddModal = false;
     showMergeModal = false;
     didValidate = false;
     lastUserEmail = '';
-    modelProperties = { user: this.currentUser.user };
+    changeset!: BufferedChangeset;
     reloadAlternateList!: (page?: number) => void; // bound by paginated-list
     reloadUnconfirmedList!: (page?: number) => void; // bound by paginated-list
     alternateQueryParams = { 'filter[primary]': false, 'filter[confirmed]': true };
     unconfirmedQueryParams = { 'filter[primary]': false, 'filter[confirmed]': false };
 
-    @task({ restartable: true })
-    loadPrimaryEmail = task(function *(this: ConnectedEmails) {
+    emailValidations: ValidationObject<EmailValidation> = {
+        emailAddress: [
+            validateFormat({
+                allowBlank: false,
+                type: 'email',
+                translationArgs: { description: this.intl.t('settings.account.connected_emails.email_address') },
+            }),
+        ],
+    };
+
+    @task
+    @waitFor
+    async onSave() {
+        let newEmail;
+        try {
+            this.changeset.validate();
+            if (this.changeset.get('isValid') && this.changeset.get('emailAddress')) {
+                this.set('lastUserEmail', this.changeset.get('emailAddress'));
+                newEmail = this.store.createRecord('user-email', {
+                    emailAddress: this.changeset.get('emailAddress'),
+                    user: this.currentUser.user,
+                });
+                await newEmail.save();
+                this.set('showAddModal', true);
+                this.reloadUnconfirmedList();
+                this.toast.success(this.intl.t('settings.account.connected_emails.save_success'));
+                this.changeset.set('emailAddress', '');
+            }
+        } catch (e) {
+            if (newEmail) {
+                newEmail.unloadRecord();
+            }
+            captureException(e);
+            this.toast.error(getApiErrorMessage(e), this.intl.t('settings.account.connected_emails.save_fail'));
+        }
+    }
+
+    @restartableTask
+    @waitFor
+    async loadPrimaryEmail() {
         const { user } = this.currentUser;
 
         if (!user) {
             return undefined;
         }
         try {
-            const emails: QueryHasManyResult<UserEmail> = yield user.queryHasMany(
+            const emails = await user.queryHasMany(
                 'emails',
                 { 'filter[primary]': true },
             );
@@ -47,10 +91,11 @@ export default class ConnectedEmails extends Component {
         } catch (e) {
             return this.intl.t('settings.account.connected_emails.load_fail');
         }
-    });
+    }
 
     @task
-    deleteEmail = task(function *(this: ConnectedEmails, email: UserEmail) {
+    @waitFor
+    async deleteEmail(email: UserEmail) {
         const errorMessage = this.intl.t('settings.account.connected_emails.delete_fail');
         const successMessage = this.intl.t('settings.account.connected_emails.delete_success');
 
@@ -59,7 +104,7 @@ export default class ConnectedEmails extends Component {
         }
 
         try {
-            yield email.destroyRecord();
+            await email.destroyRecord();
         } catch (e) {
             captureException(e, { errorMessage });
             return this.toast.error(getApiErrorMessage(e), errorMessage);
@@ -70,10 +115,11 @@ export default class ConnectedEmails extends Component {
             this.reloadUnconfirmedList();
         }
         return this.toast.success(successMessage);
-    });
+    }
 
     @task
-    updatePrimaryEmail = task(function *(this: ConnectedEmails, email: UserEmail) {
+    @waitFor
+    async updatePrimaryEmail(email: UserEmail) {
         const errorMessage = this.intl.t('settings.account.connected_emails.update_fail');
         const successMessage = this.intl.t('settings.account.connected_emails.update_success');
 
@@ -84,21 +130,22 @@ export default class ConnectedEmails extends Component {
         email.set('primary', true);
 
         try {
-            yield email.save();
+            await email.save();
         } catch (e) {
             captureException(e, { errorMessage });
             return this.toast.error(getApiErrorMessage(e), errorMessage);
         }
 
-        this.get('loadPrimaryEmail').perform();
+        taskFor(this.loadPrimaryEmail).perform();
 
         this.reloadAlternateList();
 
         return this.toast.success(successMessage);
-    });
+    }
 
     @task
-    resendEmail = task(function *(this: ConnectedEmails, email: UserEmail) {
+    @waitFor
+    async resendEmail(email: UserEmail) {
         const errorMessage = this.intl.t('settings.account.connected_emails.resend_fail');
         const successMessage = this.intl.t('settings.account.connected_emails.resend_success');
 
@@ -109,7 +156,7 @@ export default class ConnectedEmails extends Component {
         const url = getHref(email.links.resend_confirmation);
 
         try {
-            yield this.currentUser.authenticatedAJAX({
+            await this.currentUser.authenticatedAJAX({
                 url,
                 type: 'GET',
             });
@@ -119,52 +166,28 @@ export default class ConnectedEmails extends Component {
         }
 
         return this.toast.success(successMessage);
-    });
+    }
 
     init() {
         super.init();
-        this.loadPrimaryEmail.perform();
-    }
-
-    @action
-    onSave(changeset: ChangesetDef & UserEmail) {
-        if (changeset.get('emailAddress')) {
-            this.set('lastUserEmail', changeset.get('emailAddress'));
-            this.set('showAddModal', true);
-            this.reloadUnconfirmedList();
-
-            this.toast.success(this.intl.t('settings.account.connected_emails.save_success'));
-        }
-    }
-    @action
-    onError(e: DS.AdapterError | Error, changeset: ChangesetDef & UserEmail) {
-        if (e instanceof DS.ConflictError) {
-            const emailSet = changeset.get('existingEmails');
-            emailSet.add(changeset.get('emailAddress'));
-            changeset.validate();
-        } else if (e instanceof DS.AdapterError) {
-            const emailSet = changeset.get('invalidEmails');
-            emailSet.add(changeset.get('emailAddress'));
-            changeset.validate();
-        } else {
-            this.toast.error(e.message);
-        }
+        taskFor(this.loadPrimaryEmail).perform();
+        this.changeset = buildChangeset({ emailAddress: '' }, this.emailValidations, { skipValidate: true });
     }
 
     @action
     makePrimary(email: UserEmail) {
-        this.updatePrimaryEmail.perform(email);
+        taskFor(this.updatePrimaryEmail).perform(email);
     }
 
     @action
     resendConfirmation(email: UserEmail) {
         this.toggleProperty('showMergeModal');
-        this.resendEmail.perform(email);
+        taskFor(this.resendEmail).perform(email);
     }
 
     @action
     removeEmail(email: UserEmail) {
-        this.deleteEmail.perform(email);
+        taskFor(this.deleteEmail).perform(email);
     }
 
     @action

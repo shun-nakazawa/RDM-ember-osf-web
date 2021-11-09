@@ -5,8 +5,8 @@ import { inject as service } from '@ember/service';
 import { localClassNames } from 'ember-css-modules';
 
 import { layout, requiredAction } from 'ember-osf-web/decorators/component';
+import ProviderModel from 'ember-osf-web/models/provider';
 import Analytics from 'ember-osf-web/services/analytics';
-import defaultTo from 'ember-osf-web/utils/default-to';
 import { SearchFilter, SearchOptions } from 'registries/services/search';
 import template from './template';
 
@@ -16,15 +16,16 @@ export default class RegistriesSourcesFacet extends Component {
     @service analytics!: Analytics;
 
     searchOptions!: SearchOptions;
+    provider?: ProviderModel;
     @requiredAction onSearchOptionsUpdated!: (options: SearchOptions) => void;
 
     title = 'Provider';
     options: EmberArray<{
         count: number,
         filter: SearchFilter,
-    }> = defaultTo(this.options, A([]));
+    }> = A([]);
 
-    @computed('options', 'searchOptions')
+    @computed('options', 'searchOptions.filters')
     get providers() {
         return this.options.map(option => ({
             ...option,
@@ -32,10 +33,24 @@ export default class RegistriesSourcesFacet extends Component {
         }));
     }
 
+    @computed('options.length')
+    get shouldLinkToAggregateDiscover() {
+        return this.options.length === 1;
+    }
+
     @action
     providerChecked(filter: SearchFilter, remove: boolean) {
-        this.analytics.track('filter', remove ? 'remove' : 'add', `Discover - providers ${filter.display}`);
-
+        if (this.provider) {
+            this.analytics.track(
+                'filter',
+                remove
+                    ? 'remove'
+                    : 'add',
+                `Discover - providers ${filter.display} ${this.provider.name}`,
+            );
+        } else {
+            this.analytics.track('filter', remove ? 'remove' : 'add', `Discover - providers ${filter.display}`);
+        }
         if (remove) {
             this.onSearchOptionsUpdated(this.searchOptions.removeFilters(filter));
         } else {

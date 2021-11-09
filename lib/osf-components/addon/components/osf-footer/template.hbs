@@ -37,11 +37,32 @@
                 </p>
                 <p>
                     <OsfLink
+                        data-analytics-name='social_twitter'
+                        aria-label={{t 'social.twitter'}}
+                        @href={{this.twitter}}
+                    >
+                        <FaIcon @icon='twitter' @prefix='fab' @size='2x' />
+                    </OsfLink>
+                    <OsfLink
+                        data-analytics-name='social_facebook'
+                        aria-label={{t 'social.facebook'}}
+                        @href={{this.facebook}}
+                    >
+                        <FaIcon @icon='facebook' @prefix='fab' @size='2x' />
+                    </OsfLink>
+                    <OsfLink
+                        data-analytics-name='social_google_group'
+                        aria-label={{t 'social.google_group'}}
+                        @href={{this.googleGroup}}
+                    >
+                        <FaIcon @icon='users' @size='2x' />
+                    </OsfLink>
+                    <OsfLink
                         data-analytics-name='social_github'
                         aria-label={{t 'social.github'}}
                         @href={{this.github}}
                     >
-                        <i class='fa fa-github fa-2x'></i>
+                        <FaIcon @icon='github' @prefix='fab' @size='2x' />
                     </OsfLink>
                 </p>
             </div>

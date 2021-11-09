@@ -1,11 +1,14 @@
+import Store from '@ember-data/store';
 import { computed, setProperties } from '@ember/object';
 import { inject as service } from '@ember/service';
-import { task } from 'ember-concurrency-decorators';
-import DS from 'ember-data';
+import { waitFor } from '@ember/test-waiters';
+import { task } from 'ember-concurrency';
+import { taskFor } from 'ember-concurrency-ts';
 
 import { layout } from 'ember-osf-web/decorators/component';
 import Collection from 'ember-osf-web/models/collection';
 import CollectionProvider from 'ember-osf-web/models/collection-provider';
+import Analytics from 'ember-osf-web/services/analytics';
 
 import Base from '../base/component';
 import styles from './styles';
@@ -17,7 +20,8 @@ interface Item {
 
 @layout(template, styles)
 export default abstract class SearchFacetChecklist extends Base {
-    @service store!: DS.Store;
+    @service analytics!: Analytics;
+    @service store!: Store;
 
     allItems: Item[] = [];
 
@@ -25,14 +29,15 @@ export default abstract class SearchFacetChecklist extends Base {
     abstract get filterProperty(): string;
 
     @task
-    initialize = task(function *(this: SearchFacetChecklist): IterableIterator<any> {
-        const providers: CollectionProvider[] = this.theme.isProvider
-            ? [this.theme.provider]
-            : (yield this.store.findAll('collection-provider', {
+    @waitFor
+    async initialize() {
+        const providers = this.theme.isProvider
+            ? [this.theme.provider] as CollectionProvider[]
+            : (await this.store.findAll('collection-provider', {
                 include: 'primary_collection',
             }));
 
-        const primaryCollections: Collection[] = yield Promise.all(
+        const primaryCollections = await Promise.all(
             providers.map(({ primaryCollection }) => primaryCollection),
         );
 
@@ -56,7 +61,7 @@ export default abstract class SearchFacetChecklist extends Base {
         });
 
         this.context.updateFilters();
-    });
+    }
 
     @computed('allItems.[]', 'context.activeFilter.[]')
     get items() {
@@ -72,7 +77,7 @@ export default abstract class SearchFacetChecklist extends Base {
     didInsertElement(this: SearchFacetChecklist) {
         super.didInsertElement();
 
-        const { context, filterChanged, filterProperty } = this;
+        const { analytics, context, filterChanged, filterProperty, theme } = this;
 
         setProperties(context, {
             updateFilters(item?: string) {
@@ -81,6 +86,12 @@ export default abstract class SearchFacetChecklist extends Base {
                 if (item) {
                     const method = activeFilter.includes(item) ? 'removeObject' : 'pushObject';
                     activeFilter[method](item);
+                    const filterAction = method === 'removeObject' ? 'remove' : 'add';
+                    analytics.track(
+                        'filter',
+                        filterAction,
+                        `Discover - Filter ${context.title} ${item} - ${theme.id}`,
+                    );
                 }
 
                 setProperties(context, {
@@ -96,6 +107,6 @@ export default abstract class SearchFacetChecklist extends Base {
             },
         });
 
-        this.initialize.perform();
+        taskFor(this.initialize).perform();
     }
 }

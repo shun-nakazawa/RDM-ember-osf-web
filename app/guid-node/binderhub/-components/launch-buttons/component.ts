@@ -7,7 +7,7 @@ import { BootstrapPath } from 'ember-osf-web/guid-node/binderhub/controller';
 import BinderHubConfigModel from 'ember-osf-web/models/binderhub-config';
 
 export default class LaunchButtons extends Component {
-    binderHubConfig: DS.PromiseObject<BinderHubConfigModel> & BinderHubConfigModel = this.binderHubConfig;
+    binderHubConfig!: DS.PromiseObject<BinderHubConfigModel> & BinderHubConfigModel;
 
     @requiredAction onClick!: (path: BootstrapPath | null) => void;
 

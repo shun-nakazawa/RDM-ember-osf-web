@@ -3,19 +3,18 @@ import Component from '@ember/component';
 import { computed } from '@ember/object';
 
 import { layout } from 'ember-osf-web/decorators/component';
-import defaultTo from 'ember-osf-web/utils/default-to';
 
 import template from './template';
 
 const iconMap: { [index: string]: string } = {
-    hypothesis: 'lightbulb-o',
-    'methods and measures': 'pencil',
+    hypothesis: 'lightbulb',
+    'methods and measures': 'pencil-alt',
     procedure: 'cogs',
     instrumentation: 'flask',
     data: 'database',
     software: 'laptop',
     project: 'cube',
-    analysis: 'bar-chart',
+    analysis: 'chart-bar',
     communication: 'comment',
     other: 'th-large',
     collection: 'cubes',
@@ -24,22 +23,22 @@ const iconMap: { [index: string]: string } = {
     component: 'th-large',
     registeredComponent: 'th-large',
     link: 'link',
-    preprint: 'file-text',
+    preprint: 'file-alt',
 };
 
 @layout(template)
 @tagName('span')
 export default class NodeCardNodeIcon extends Component {
-    category: string = defaultTo(this.category, '');
+    category = '';
 
     @computed('category')
     get iconType(): string {
-        return iconMap[this.get('category')] || 'circle-o-notch';
+        return iconMap[this.category] || 'circle-notch';
     }
 
     @className('text-muted', '')
     @computed('category')
     get isMuted(): boolean {
-        return ['registration', 'registeredComponent'].includes(this.get('category'));
+        return ['registration', 'registeredComponent'].includes(this.category);
     }
 }

@@ -5,6 +5,10 @@
     "ember-engine"
   ],
   "dependencies": {
+    "@fortawesome/free-regular-svg-icons": "*",
+    "@fortawesome/free-solid-svg-icons": "*",
+    "@fortawesome/ember-fontawesome": "*",
+    "@fortawesome/free-brands-svg-icons": "*",
     "ember-bootstrap": "*",
     "ember-truth-helpers": "*",
     "ember-component-attributes": "*",
@@ -16,10 +20,10 @@
     "ember-cli-template-lint": "*",
     "ember-cli-typescript": "*",
     "ember-concurrency": "*",
+    "ember-concurrency-async": "*",
     "ember-css-modules": "*",
     "ember-css-modules-sass": "*",
     "ember-intl": "*",
-    "ember-font-awesome": "*",
     "ember-moment": "*",
     "ember-page-title": "*"
   },

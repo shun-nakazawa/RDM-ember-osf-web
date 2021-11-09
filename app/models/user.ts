@@ -1,10 +1,12 @@
+import { attr, belongsTo, hasMany, AsyncHasMany } from '@ember-data/model';
 import { alias } from '@ember/object/computed';
 import { buildValidations, validator } from 'ember-cp-validations';
-import DS from 'ember-data';
+import config from 'ember-get-config';
 import { Link } from 'jsonapi-typescript';
 
 import SparseNodeModel from 'ember-osf-web/models/sparse-node';
 import ContributorModel from './contributor';
+import DraftRegistrationModel from './draft-registration';
 import FileModel from './file';
 import InstitutionModel from './institution';
 import NodeModel from './node';
@@ -14,7 +16,7 @@ import RegistrationModel from './registration';
 import UserEmailModel from './user-email';
 import UserSettingModel from './user-setting';
 
-const { attr, belongsTo, hasMany } = DS;
+const { OSF: { apiUrl, apiNamespace } } = config;
 
 const Validations = buildValidations({
     acceptedTermsOfService: [
@@ -56,14 +58,25 @@ export interface UserLinks extends OsfLinks {
 }
 
 export interface Employment {
-    title: string;
-    endYear: number;
-    ongoing: boolean;
-    endMonth: number;
-    startYear: number;
-    department: string;
-    startMonth: number;
-    institution: string;
+    title?: string;
+    endYear?: number;
+    ongoing?: boolean;
+    endMonth?: number;
+    startYear?: number;
+    department?: string;
+    startMonth?: number;
+    institution?: string;
+}
+
+export interface Education {
+    degree?: string;
+    endYear?: string;
+    startYear?: string;
+    endMonth?: number;
+    startMonth?: number;
+    ongoing?: boolean;
+    department?: string;
+    institution?: string;
 }
 
 export default class UserModel extends OsfModel.extend(Validations) {
@@ -81,37 +94,60 @@ export default class UserModel extends OsfModel.extend(Validations) {
     @attr('boolean') active!: boolean;
     @attr('object') social!: {};
     @attr('array') employment!: Employment[];
+    @attr('array') education!: Education[];
 
     @belongsTo('region', { async: false })
-    defaultRegion!: DS.PromiseObject<RegionModel> & RegionModel;
+    defaultRegion!: RegionModel;
 
     @belongsTo('user-setting', { inverse: 'user', async: false })
     settings?: UserSettingModel | null;
 
     @hasMany('node')
-    nodes!: DS.PromiseManyArray<NodeModel>;
+    nodes!: AsyncHasMany<NodeModel>;
 
     @hasMany('contributor')
-    contributors!: DS.PromiseManyArray<ContributorModel>;
+    contributors!: AsyncHasMany<ContributorModel>;
 
     @hasMany('registration')
-    registrations!: DS.PromiseManyArray<RegistrationModel>;
+    registrations!: AsyncHasMany<RegistrationModel>;
+
+    @hasMany('draft-registration')
+    draftRegistrations!: AsyncHasMany<DraftRegistrationModel>;
 
     @hasMany('file')
-    quickfiles!: DS.PromiseManyArray<FileModel>;
+    quickfiles!: AsyncHasMany<FileModel>;
 
     @hasMany('institution', { inverse: 'users' })
-    institutions!: DS.PromiseManyArray<InstitutionModel>;
+    institutions!: AsyncHasMany<InstitutionModel>;
 
     @hasMany('user-email', { inverse: 'user' })
-    emails!: DS.PromiseManyArray<UserEmailModel>;
+    emails!: AsyncHasMany<UserEmailModel>;
 
     @hasMany('sparse-node', { inverse: null })
-    sparseNodes!: DS.PromiseArray<SparseNodeModel>;
+    sparseNodes!: AsyncHasMany<SparseNodeModel>;
 
     // Calculated fields
     @alias('links.html') profileURL!: string;
     @alias('links.profile_image') profileImage!: string;
+
+    claimUnregisteredUser(nodeId: string, email?: string) {
+        const url = `${apiUrl}/${apiNamespace}/users/${this.id}/claim/`;
+        return this.currentUser.authenticatedAJAX({
+            url,
+            type: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            data: JSON.stringify({
+                data: {
+                    attributes: {
+                        email,
+                        id: nodeId,
+                    },
+                },
+            }),
+        });
+    }
 }
 
 declare module 'ember-data/types/registries/model' {
