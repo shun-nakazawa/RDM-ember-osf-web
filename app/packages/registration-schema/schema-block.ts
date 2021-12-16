@@ -11,7 +11,11 @@ export type SchemaBlockType =
     'multi-select-input' |
     'single-select-input' |
     'select-input-option' |
-    'select-other-option';
+    'select-other-option' |
+    // RDM
+    'test-text-input' |
+    'rdm-erad-dm-num-input' |
+    'rdm-erad-dm-name-input';
 
 export interface SchemaBlock {
     id?: string;

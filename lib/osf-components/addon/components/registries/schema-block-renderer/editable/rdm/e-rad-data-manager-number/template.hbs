@@ -1,0 +1,27 @@
+<Registries::SchemaBlockRenderer::Editable::Base @helpText={{this.schemaBlock.helpText}}>
+    <FormControls
+        @changeset={{@changeset}}
+        @disabled={{@disabled}}
+        @shouldShowMessages={{@shouldShowMessages}}
+        ...attributes as |form|
+    >
+<!--        <form.text-->
+<!--            data-rdm-erad-dm-num-input-->
+<!--            local-class='schema-block-input'-->
+<!--            @uniqueID={{@uniqueID}}-->
+<!--            @valuePath={{@schemaBlock.registrationResponseKey}}-->
+<!--            @onKeyUp={{action onChange value='target.value'}}-->
+<!--            @placeholder=' '-->
+<!--        />-->
+        <PowerSelect
+          @options={{this.dmNumbers}}
+          @searchEnabled={{true}}
+          @search={{perform this.searchDmNumber}}
+          @selected={{this.dmNumber}}
+          @onchange={{action this.onChange}}
+          as |dmNumber|
+        >
+            {{dmNumber}}
+        </PowerSelect>
+    </FormControls>
+</Registries::SchemaBlockRenderer::Editable::Base>

@@ -38,6 +38,10 @@ export function getSchemaBlockGroups(blocks: SchemaBlock[] | undefined) {
             case 'contributors-input':
             case 'single-select-input':
             case 'multi-select-input':
+            // RDM
+            case 'test-text-input':
+            case 'rdm-erad-dm-num-input':
+            case 'rdm-erad-dm-name-input':
                 assert('input block with no registrationResponseKey!', !isEmpty(block.registrationResponseKey));
                 assert('question with multiple input blocks!', !schemaBlockGroup.inputBlock);
                 assert('non-unique response key used',
