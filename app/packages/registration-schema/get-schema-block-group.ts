@@ -53,13 +53,6 @@ export function getSchemaBlockGroups(blocks: SchemaBlock[] | undefined) {
             case 'e-rad-bunnya-input':
             case 'file-metadata-input':
             case 'date-input':
-            case 'file-capacity-input':
-            case 'file-creators-input':
-            case 'file-url-input':
-            case 'file-institution-ja-input':
-            case 'file-institution-en-input':
-            case 'file-institution-id-input':
-            case 'file-data-number-input':
 
                 assert('input block with no registrationResponseKey!', !isEmpty(block.registrationResponseKey));
                 assert('question with multiple input blocks!', !schemaBlockGroup.inputBlock);

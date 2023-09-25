@@ -538,6 +538,7 @@ validationErrors:
     year_format: 'Please specify a valid year.'
     invalid_format_funder: '半角英数字で入力してください。'
     invalid_format_funding-stream-code: '5文字以内の半角英数字で入力してください。'
+    invalid_required_if: 'このフィールドか「{otherLabel}」のいずれかを入力する必要があります。'
 validated_input_form:
     discard_changes: 変更を破棄
 node_navbar:

@@ -538,6 +538,7 @@ validationErrors:
     year_format: 'Please specify a valid year.'
     invalid_format_funder: 'Please use single-byte alphanumeric characters.'
     invalid_format_funding-stream-code: 'Please enter up to 5 single-byte alphanumeric characters.'
+    invalid_required_if: 'One of this field or "{otherLabel}" field must be filled.'
 validated_input_form:
     discard_changes: 'Discard changes'
 node_navbar:
