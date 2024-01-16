@@ -44,8 +44,8 @@ export function validateFileList(responseKey: string, node?: NodeModel): Validat
     };
 }
 
-export function validateConditionalRequired(
-    conditionalRequired: string, groups: SchemaBlockGroup[],
+export function validateRequiredIf(
+    requiredIf: string, groups: SchemaBlockGroup[],
 ): ValidatorFunction {
     return async (
         key: string,
@@ -54,10 +54,10 @@ export function validateConditionalRequired(
         changes: Record<string, unknown>,
         content: Record<string, unknown>,
     ) => {
-        const otherKey = `__responseKey_${conditionalRequired}`;
+        const otherKey = `__responseKey_${requiredIf}`;
         const otherGroup = groups.find(group => group.registrationResponseKey === otherKey);
         assert(
-            `no response key with label for group ${conditionalRequired} by conditionalRequired`,
+            `no response key with label for group ${requiredIf} by requiredIf`,
             otherGroup != null && otherGroup.labelBlock != null && otherGroup.labelBlock.displayText != null,
         );
         const displayText: string = (otherGroup && otherGroup.labelBlock && otherGroup.labelBlock.displayText) || '';
@@ -67,7 +67,7 @@ export function validateConditionalRequired(
             return buildMessage(key, {
                 type: 'presence',
                 context: {
-                    type: 'invalid_conditional_required',
+                    type: 'invalid_required_if',
                     translationArgs: {
                         otherLabel: displayText,
                     },

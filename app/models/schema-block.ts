@@ -17,7 +17,7 @@ export default class SchemaBlockModel extends OsfModel implements SchemaBlock {
     @attr('string') helpText?: string;
     @attr('string') exampleText?: string;
     @attr('boolean') required?: boolean;
-    @attr('string') conditionalRequired?: string;
+    @attr('string') requiredIf?: string;
     @attr('boolean') default?: boolean;
     @attr('number') index?: number;
     @attr('string') pattern?: string;

@@ -9,7 +9,7 @@ import DraftRegistration, { DraftMetadataProperties } from 'ember-osf-web/models
 import NodeModel, { NodeLicense } from 'ember-osf-web/models/node';
 import { RegistrationResponse } from 'ember-osf-web/packages/registration-schema';
 import { SchemaBlockGroup } from 'ember-osf-web/packages/registration-schema/schema-block-group';
-import { validateConditionalRequired, validateFileList } from 'ember-osf-web/validators/validate-response-format';
+import { validateFileList, validateRequiredIf } from 'ember-osf-web/validators/validate-response-format';
 
 export const NodeLicenseFields: Record<keyof NodeLicense, string> = {
     copyrightHolders: 'Copyright Holders',
@@ -57,9 +57,9 @@ export function buildValidation(groups: SchemaBlockGroup[], node?: NodeModel) {
                     validateFileList(responseKey as string, node),
                 );
             }
-            if (inputBlock.conditionalRequired) {
+            if (inputBlock.requiredIf) {
                 validationForResponse.push(
-                    validateConditionalRequired(inputBlock.conditionalRequired, groups),
+                    validateRequiredIf(inputBlock.requiredIf, groups),
                 );
             }
             if (inputBlock.pattern) {
@@ -91,15 +91,15 @@ export function buildValidation(groups: SchemaBlockGroup[], node?: NodeModel) {
 }
 
 export function setupEventForSyncValidation(changeset: ChangesetDef, groups: SchemaBlockGroup[]) {
-    const conditionalRequiredGroups = groups
+    const requiredIfGroups = groups
         // ignore GRDM file specific fields
         .filter((group: SchemaBlockGroup) => !group.registrationResponseKey
             || !group.registrationResponseKey.match(/^__responseKey_grdm-file:.+$/))
-        .filter((group: SchemaBlockGroup) => group.inputBlock && group.inputBlock.conditionalRequired);
+        .filter((group: SchemaBlockGroup) => group.inputBlock && group.inputBlock.requiredIf);
     changeset.on('afterValidation', (key: string) => {
-        conditionalRequiredGroups
+        requiredIfGroups
             .forEach(group => {
-                if (`__responseKey_${group.inputBlock!.conditionalRequired}` !== key) {
+                if (`__responseKey_${group.inputBlock!.requiredIf}` !== key) {
                     return;
                 }
                 const errors = changeset.get('errors');
@@ -112,7 +112,7 @@ export function setupEventForSyncValidation(changeset: ChangesetDef, groups: Sch
                         (result: string | ValidationResult): result is ValidationResult => typeof result === 'object',
                     )
                     .filter(
-                        (result: ValidationResult) => result.context.type === 'invalid_conditional_required',
+                        (result: ValidationResult) => result.context.type === 'invalid_required_if',
                     );
                 const validatedContextValues: Array<{[key: string]: any}> = validationErrors
                     .filter((result: ValidationResult) => typeof result.value === 'object')
