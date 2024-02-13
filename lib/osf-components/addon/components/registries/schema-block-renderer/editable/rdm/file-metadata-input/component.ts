@@ -253,19 +253,24 @@ export default class FileMetadataInput extends Component {
         if (!managerJa && !managerEn) {
             return null;
         }
+        let value;
         if (managerJa && !managerEn) {
-            return `${managerJa.value}`;
+            value = managerJa.value;
+        } else if (!managerJa && managerEn) {
+            value = managerEn.value;
+        } else if (this.intl.locale.includes('ja')) {
+            value = managerJa.value;
+        } else {
+            value = managerEn.value;
         }
-        if (!managerJa && managerEn) {
-            return `${managerEn.value}`;
+        if (value && typeof value === 'object') {
+            return (
+                this.intl.locale.includes('ja')
+                    ? [value.last, value.middle, value.first]
+                    : [value.first, value.middle, value.last]
+            ).filter(v => v).join(' ');
         }
-        if (!managerJa.value && !managerEn.value) {
-            return null;
-        }
-        if (this.intl.locale.includes('ja')) {
-            return `${managerJa.value}`;
-        }
-        return `${managerEn.value}`;
+        return value;
     }
 
     extractUrlFromMetadata(metadata: FileMetadata): string | null {
