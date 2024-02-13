@@ -53,6 +53,8 @@ export function getSchemaBlockGroups(blocks: SchemaBlock[] | undefined) {
             case 'e-rad-bunnya-input':
             case 'file-metadata-input':
             case 'date-input':
+            case 'section-heading':
+            case 'subsection-heading':
 
                 assert('input block with no registrationResponseKey!', !isEmpty(block.registrationResponseKey));
                 assert('question with multiple input blocks!', !schemaBlockGroup.inputBlock);
