@@ -3,10 +3,10 @@
     id={{@schemaBlock.elementId}}
     ...attributes
 >
-    {{@schemaBlock.displayText}}
+    {{this.localizedDisplayText}}
     <span>
         {{#if this.isEditableForm}}
-            <Registries::SchemaBlockRenderer::HelperTextIcon @helpText={{this.schemaBlock.helpText}} />
+            <Registries::SchemaBlockRenderer::HelperTextIcon @helpText={{this.localizedHelpText}} />
         {{/if}}
     </span>
 </h3>

@@ -9,6 +9,7 @@ import {
     getSchemaBlockGroups,
     SchemaBlock,
     SchemaBlockGroup,
+    setupEventForSyncValidation,
 } from 'ember-osf-web/packages/registration-schema';
 import { RegistrationResponse } from 'ember-osf-web/packages/registration-schema/registration-response';
 
@@ -33,6 +34,7 @@ export class PageManager {
                 lookupValidator(validations),
                 validations,
             ) as ChangesetDef;
+            setupEventForSyncValidation(this.changeset, this.schemaBlockGroups);
 
             if (this.isVisited) {
                 this.changeset.validate();

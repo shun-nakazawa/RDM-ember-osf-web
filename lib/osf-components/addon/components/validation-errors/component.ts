@@ -48,9 +48,14 @@ export default class ValidationErrors extends Component<Args> {
 
             if (Array.isArray(validatorErrors)) {
                 return validatorErrors.map(
-                    ({ context: { type, translationArgs } }) => this.intl.t(
-                        `validationErrors.${type}`, { ...translationArgs },
-                    ),
+                    ({ context: { type, translationArgs } }) => {
+                        const localizedArgs: Array<[string, (string | number)]> = Object.entries(translationArgs || {})
+                            .map(([k, v]) => [k, this.getLocalizedText(v)]);
+                        const localizedArgMap = localizedArgs.reduce((acc, [k, v]) => ({ ...acc, [k]: v }), {});
+                        return this.intl.t(
+                            `validationErrors.${type}`, localizedArgMap,
+                        );
+                    },
                 );
             }
         }
@@ -60,5 +65,19 @@ export default class ValidationErrors extends Component<Args> {
     get validatorErrors() {
         const { errors, validatorResults } = this;
         return isEmpty(errors) ? validatorResults : errors;
+    }
+
+    getLocalizedText(text: string | number): string | number {
+        if (typeof text !== 'string') {
+            return text;
+        }
+        if (!text.includes('|')) {
+            return text;
+        }
+        const texts = text.split('|');
+        if (this.intl.locale.includes('ja')) {
+            return texts[0];
+        }
+        return texts[1];
     }
 }

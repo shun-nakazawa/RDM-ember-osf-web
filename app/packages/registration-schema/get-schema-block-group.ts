@@ -53,16 +53,20 @@ export function getSchemaBlockGroups(blocks: SchemaBlock[] | undefined) {
             case 'e-rad-bunnya-input':
             case 'file-metadata-input':
             case 'date-input':
-            case 'file-capacity-input':
-            case 'file-creators-input':
-            case 'file-url-input':
-            case 'file-institution-ja-input':
-            case 'file-institution-en-input':
-            case 'file-institution-id-input':
-            case 'file-data-number-input':
+            case 'section-heading':
+            case 'subsection-heading':
+            case 'array-input':
 
-                assert('input block with no registrationResponseKey!', !isEmpty(block.registrationResponseKey));
                 assert('question with multiple input blocks!', !schemaBlockGroup.inputBlock);
+                if (
+                    ['section-heading', 'subsection-heading'].includes(block.blockType)
+                    && isEmpty(block.registrationResponseKey)
+                ) {
+                    // array-input heading
+                    schemaBlockGroup.labelBlock = block;
+                    break;
+                }
+                assert('input block with no registrationResponseKey!', !isEmpty(block.registrationResponseKey));
                 assert('non-unique response key used',
                     responseKeysEncountered.indexOf(block.registrationResponseKey!) < 0);
                 responseKeysEncountered.push(block.registrationResponseKey!);
@@ -108,5 +112,29 @@ export function getSchemaBlockGroups(blocks: SchemaBlock[] | undefined) {
         }
         return groups;
     }, []);
-    return allGroups;
+
+    let parentGroups: SchemaBlockGroup[] = [];
+    return allGroups.filter((group: SchemaBlockGroup) => {
+        if (group.registrationResponseKey) {
+            while (
+                parentGroups.length
+                && !group.registrationResponseKey!.startsWith(
+                    `${parentGroups[parentGroups.length - 1].registrationResponseKey}|`,
+                )
+            ) {
+                parentGroups.pop();
+            }
+        } else {
+            parentGroups = [];
+        }
+        const hasParent = parentGroups.length;
+        if (hasParent) {
+            parentGroups[parentGroups.length - 1].children!.push(group);
+        }
+        if (group.groupType === 'array-input') {
+            group.children = []; // eslint-disable-line no-param-reassign
+            parentGroups.push(group);
+        }
+        return !hasParent;
+    });
 }
