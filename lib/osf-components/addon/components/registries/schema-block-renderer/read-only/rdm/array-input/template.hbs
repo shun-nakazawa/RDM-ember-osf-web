@@ -1,0 +1,18 @@
+{{#each this.subs as |sub|}}
+    <div local-class='array-input-item-container'>
+        {{#each @schemaBlockGroup.children as |group|}}
+            <Registries::SchemaBlockGroupRenderer
+                @schemaBlockGroup={{group}}
+                @renderStrategy={{
+                    component
+                    'registries/schema-block-renderer/read-only/mapper'
+                    registrationResponses=sub.subRegistrationResponse
+                    changeset=sub.subChangeset
+                    node=@node
+                    draftManager=this.draftManager
+                    schemaBlockGroup=group
+                }}
+            />
+        {{/each}}
+    </div>
+{{/each}}

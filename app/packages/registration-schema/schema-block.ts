@@ -26,7 +26,8 @@ export type SchemaBlockType =
     'e-rad-researcher-name-en-input' |
     'e-rad-bunnya-input' |
     'file-metadata-input' |
-    'date-input';
+    'date-input' |
+    'array-input';
 
 export interface SchemaBlock {
     id?: string;

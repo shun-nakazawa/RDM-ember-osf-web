@@ -1843,3 +1843,6 @@ metadata:
         export-dialog:
             title: 'Select a report format'
             description: 'Select the report format you want to output.'
+    array-input:
+        add-item: 'Add item'
+        remove-item: 'Remove item'

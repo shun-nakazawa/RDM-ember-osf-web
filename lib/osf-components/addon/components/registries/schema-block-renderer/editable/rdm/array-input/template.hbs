@@ -1,0 +1,38 @@
+<Registries::SchemaBlockRenderer::Editable::Base @helpText={{this.schemaBlock.helpText}}>
+
+    {{#each this.subChangesets as |subChangeset|}}
+        <div local-class='array-input-item-container'>
+            {{#each @schemaBlockGroup.children as |group|}}
+                <Registries::SchemaBlockGroupRenderer
+                    @schemaBlockGroup={{group}}
+                    @renderStrategy={{
+                        component
+                        'registries/schema-block-renderer/editable/mapper'
+                        changeset=subChangeset
+                        node=@node
+                        onInput=@onInput
+                        metadataChangeset=this.draftManager.metadataChangeset
+                        metadataNodeErad=this.draftManager.metadataNodeErad
+                        metadataNodeProject=this.draftManager.metadataNodeProject
+                        onMetadataInput=@onMetadataInput
+                        draftManager=this.draftManager
+                        schemaBlockGroup=group
+                    }}
+                />
+            {{/each}}
+            <OsfButton local-class='array-input-remove-button'
+              @onClick={{action this.onRemove subChangeset}}
+            >
+                {{t 'metadata.array-input.remove-item'}}
+            </OsfButton>
+        </div>
+    {{/each}}
+
+    <OsfButton local-class='array-input-add-button'
+      @type='primary'
+      @onClick={{action this.onAdd}}
+    >
+        {{t 'metadata.array-input.add-item'}}
+    </OsfButton>
+
+</Registries::SchemaBlockRenderer::Editable::Base>

@@ -1843,3 +1843,6 @@ metadata:
         export-dialog:
             title: '報告書フォーマットの選択'
             description: '出力したい報告書のフォーマットを選択してください。'
+    array-input:
+        add-item: 'アイテム追加'
+        remove-item: 'アイテム削除'
