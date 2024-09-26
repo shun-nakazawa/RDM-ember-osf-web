@@ -12,22 +12,16 @@ export type SchemaBlockType =
     'single-select-input' |
     'select-input-option' |
     'select-other-option' |
-    'japan-grant-number-input' |
-    'funding-stream-code-input' |
-    'jgn-program-name-ja-input' |
-    'jgn-program-name-en-input' |
-    'e-rad-award-funder-input' |
-    'e-rad-award-number-input' |
-    'e-rad-award-title-ja-input' |
-    'e-rad-award-title-en-input' |
-    'e-rad-award-field-input' |
-    'e-rad-researcher-number-input' |
-    'e-rad-researcher-name-ja-input' |
-    'e-rad-researcher-name-en-input' |
-    'e-rad-bunnya-input' |
     'file-metadata-input' |
     'date-input' |
     'array-input';
+
+export interface Suggestion {
+    key: string;
+    template?: string;
+    autofill?: {[key: string]: string};
+    button?: string;
+}
 
 export interface SchemaBlock {
     id?: string;
@@ -38,9 +32,12 @@ export interface SchemaBlock {
     helpText?: string;
     exampleText?: string;
     required?: boolean;
-    requiredIf?: string;
+    requiredIf?: object;
+    messageRequiredIf?: string;
     default?: boolean;
     index?: number;
     pattern?: string;
     spaceNormalization?: boolean;
+    suggestion?: Suggestion[];
+    allowAdditionalOption?: boolean;
 }

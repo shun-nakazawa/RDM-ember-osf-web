@@ -199,6 +199,7 @@
     "qunit-dom": "^1.0.0",
     "sass": "^1.26.3",
     "seedrandom": "^3.0.1",
+    "sift": "^17.0.1",
     "sinon": "^7.3.2",
     "stylelint-config-css-modules": "^1.2.0",
     "stylelint-config-sass-guidelines": "^6.0.0",

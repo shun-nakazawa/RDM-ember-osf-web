@@ -3,17 +3,23 @@
         @changeset={{@changeset}}
         @disabled={{@disabled}}
         @shouldShowMessages={{@shouldShowMessages}}
-        ...attributes as |form|
+        ...attributes
     >
-        <form.radioGroup
-            @id={{@uniqueID}}
-            @valuePath={{@schemaBlock.registrationResponseKey}}
+        <PowerSelect
             @options={{this.optionBlockValues}}
-            @onchange={{@onInput}}
-            @helpTextMapping={{this.helpTextMapping}}
-            as |radioGroup|
+            @onchange={{action this.onChange}}
+            @oninput={{action this.onInputSearch}}
+            @searchEnabled={{true}}
+            @selected={{or (get @changeset this.valuePath) null}}
+            @uniqueID={{@uniqueID}}
+            as |option|
         >
-            {{radioGroup}}
-        </form.radioGroup>
+            {{option}}
+        </PowerSelect>
+        <ValidationErrors
+            local-class='ValidationErrors'
+            @changeset={{@changeset}}
+            @key={{@schemaBlock.registrationResponseKey}}
+        />
     </FormControls>
 </Registries::SchemaBlockRenderer::Editable::Base>

@@ -3,6 +3,7 @@ import DS from 'ember-data';
 
 import RegistrationSchemaModel from 'ember-osf-web/models/registration-schema';
 import { SchemaBlock, SchemaBlockType } from 'ember-osf-web/packages/registration-schema';
+import { Suggestion } from 'ember-osf-web/packages/registration-schema/schema-block';
 import { getPageParam } from 'ember-osf-web/utils/page-param';
 
 import OsfModel from './osf-model';
@@ -17,11 +18,14 @@ export default class SchemaBlockModel extends OsfModel implements SchemaBlock {
     @attr('string') helpText?: string;
     @attr('string') exampleText?: string;
     @attr('boolean') required?: boolean;
-    @attr('string') requiredIf?: string;
+    @attr('object') requiredIf?: object;
+    @attr('string') messageRequiredIf?: string;
     @attr('boolean') default?: boolean;
     @attr('number') index?: number;
     @attr('string') pattern?: string;
     @attr('boolean') spaceNormalization?: boolean;
+    @attr('metadata-suggestions') suggestion?: Suggestion[];
+    @attr('boolean') allowAdditionalOption?: boolean;
 
     @belongsTo('registration-schema', { inverse: 'schemaBlocks', async: false })
     schema?: RegistrationSchemaModel;

@@ -48,7 +48,10 @@ export default class ValidationErrors extends Component<Args> {
 
             if (Array.isArray(validatorErrors)) {
                 return validatorErrors.map(
-                    ({ context: { type, translationArgs } }) => {
+                    ({ message, context: { type, translationArgs } }) => {
+                        if (type === 'no_translation') {
+                            return this.getLocalizedText(message);
+                        }
                         const localizedArgs: Array<[string, (string | number)]> = Object.entries(translationArgs || {})
                             .map(([k, v]) => [k, this.getLocalizedText(v)]);
                         const localizedArgMap = localizedArgs.reduce((acc, [k, v]) => ({ ...acc, [k]: v }), {});
