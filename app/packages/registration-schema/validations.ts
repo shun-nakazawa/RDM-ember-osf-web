@@ -57,9 +57,9 @@ export function buildValidation(groups: SchemaBlockGroup[], node?: NodeModel) {
                     validateFileList(responseKey as string, node),
                 );
             }
-            if (inputBlock.requiredIf) {
+            if (inputBlock.messageRequiredIf) {
                 validationForResponse.push(
-                    validateRequiredIf(inputBlock.requiredIf, groups),
+                    validateRequiredIf(inputBlock.requiredIf!, inputBlock.messageRequiredIf!, groups),
                 );
             }
             if (inputBlock.pattern) {
@@ -114,9 +114,9 @@ export function setupEventForSyncValidation(changeset: ChangesetDef, groups: Sch
                     .filter(
                         (result: ValidationResult) => result.context.type === 'invalid_required_if',
                     );
-                const validatedContextValues: Array<{[key: string]: any}> = validationErrors
+                const validatedContextValues: Array<{ [key: string]: any }> = validationErrors
                     .filter((result: ValidationResult) => typeof result.value === 'object')
-                    .map((result: ValidationResult) => result.value as {[key: string]: any});
+                    .map((result: ValidationResult) => result.value as { [key: string]: any });
                 const existMismatchError = validatedContextValues.some(
                     values => values[key] !== contextCurrentValue,
                 );

@@ -5,13 +5,34 @@
         @shouldShowMessages={{@shouldShowMessages}}
         ...attributes as |form|
     >
-        <form.text
-            data-test-text-input
-            local-class='schema-block-input'
-            @uniqueID={{@uniqueID}}
-            @valuePath={{@schemaBlock.registrationResponseKey}}
-            @onKeyUp={{@onInput}}
-            @placeholder=' '
-        />
+        {{#if this.isSuggestionForm}}
+            <PowerSelect
+                data-test-text-power-select-input
+                @options={{this.suggestionOptions}}
+                @onchange={{action this.onChangeFromSuggestion}}
+                @oninput={{action this.onSuggestionSearch}}
+                @searchEnabled={{true}}
+                @selected={{or (get @changeset this.valuePath) null}}
+                @uniqueID={{@uniqueID}}
+                as |option|
+            >
+                {{option}}
+            </PowerSelect>
+            <ValidationErrors
+                local-class='ValidationErrors'
+                @changeset={{@changeset}}
+                @key={{@schemaBlock.registrationResponseKey}}
+            />
+        {{else}}
+            <form.text
+                data-test-text-input
+                local-class='schema-block-input'
+                @uniqueID={{@uniqueID}}
+                @valuePath={{@schemaBlock.registrationResponseKey}}
+                @onChange={{action this.onInputWrapper}}
+                @onKeyUp={{action this.onInputWrapper}}
+                @placeholder=' '
+            />
+        {{/if}}
     </FormControls>
 </Registries::SchemaBlockRenderer::Editable::Base>

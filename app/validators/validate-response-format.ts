@@ -6,6 +6,7 @@ import File from 'ember-osf-web/models/file';
 import NodeModel from 'ember-osf-web/models/node';
 import { SchemaBlockGroup } from 'ember-osf-web/packages/registration-schema';
 import { allSettled } from 'rsvp';
+import sift from 'sift';
 
 export function validateFileList(responseKey: string, node?: NodeModel): ValidatorFunction {
     return async (_: string, newValue: File[]) => {
@@ -45,38 +46,38 @@ export function validateFileList(responseKey: string, node?: NodeModel): Validat
 }
 
 export function validateRequiredIf(
-    requiredIf: string, groups: SchemaBlockGroup[],
+    requiredIf: object,
+    messageRequiredIf: string,
+    _: SchemaBlockGroup[],
 ): ValidatorFunction {
     return async (
-        key: string,
+        __: string,
         newValue: string,
-        _: string,
+        ___: string,
         changes: Record<string, unknown>,
         content: Record<string, unknown>,
     ) => {
-        const otherKey = `__responseKey_${requiredIf}`;
-        const otherGroup = groups.find(group => group.registrationResponseKey === otherKey);
         assert(
-            `no response key with label for group ${requiredIf} by requiredIf`,
-            otherGroup != null && otherGroup.labelBlock != null && otherGroup.labelBlock.displayText != null,
+            'messageRequiredIf is required when requiredIf exists',
+            messageRequiredIf != null,
         );
-        const displayText: string = (otherGroup && otherGroup.labelBlock && otherGroup.labelBlock.displayText) || '';
-        const otherValues = { ...content, ...changes } as {[key: string]: string};
-        const otherValue = otherValues[otherKey];
-        if (!newValue && !otherValue) {
-            return buildMessage(key, {
+        const otherValues = {} as {[key: string]: string};
+        for (const [k, v] of Object.entries({ ...content, ...changes })) {
+            const k2 = k.replace(/^__responseKey_/, '');
+            if (v) {
+                otherValues[k2] = v as string;
+            }
+        }
+        const condFunc = sift(requiredIf);
+        const required = condFunc(otherValues);
+        if (!newValue && required) {
+            return {
                 type: 'presence',
+                message: messageRequiredIf,
                 context: {
-                    type: 'invalid_required_if',
-                    translationArgs: {
-                        otherLabel: displayText,
-                    },
+                    type: 'no_translation',
                 },
-                value: {
-                    [key]: newValue,
-                    [otherKey]: otherValue,
-                },
-            });
+            };
         }
         return true;
     };

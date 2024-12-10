@@ -38,19 +38,6 @@ export function getSchemaBlockGroups(blocks: SchemaBlock[] | undefined) {
             case 'contributors-input':
             case 'single-select-input':
             case 'multi-select-input':
-            case 'japan-grant-number-input':
-            case 'funding-stream-code-input':
-            case 'jgn-program-name-ja-input':
-            case 'jgn-program-name-en-input':
-            case 'e-rad-award-funder-input':
-            case 'e-rad-award-number-input':
-            case 'e-rad-award-title-ja-input':
-            case 'e-rad-award-title-en-input':
-            case 'e-rad-award-field-input':
-            case 'e-rad-researcher-number-input':
-            case 'e-rad-researcher-name-ja-input':
-            case 'e-rad-researcher-name-en-input':
-            case 'e-rad-bunnya-input':
             case 'file-metadata-input':
             case 'date-input':
             case 'section-heading':
